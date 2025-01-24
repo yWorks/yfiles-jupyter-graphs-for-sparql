@@ -82,7 +82,7 @@ class SparqlGraphWidget:
             for element in array:
                 if element['id'] == label:
                     return i
-                i+=1
+                i += 1
             return None
 
         existing_nodes = []  # store created node labels in here
@@ -133,9 +133,6 @@ class SparqlGraphWidget:
         self.__apply_edge_mappings(widget)
         self.__apply_node_mappings(widget)
         return widget
-
-   # def create_schema_graph(self, xml):
-
 
     def add_predicate_configuration(self, predicate: Union[str, list[str]], **kwargs: Dict[str, Any]) -> None:
         """
@@ -366,4 +363,66 @@ class SparqlGraphWidget:
             safe_delete_configuration(predicate, self._edge_configurations)
 
     def show_schema(self):
-        pass
+        g = self.graph
+
+        classes = g.query("""
+            SELECT DISTINCT ?class
+            WHERE {
+                ?class rdf:type rdfs:Class .
+                }
+        """)
+        print('classes', classes)
+        properties = g.query("""
+        SELECT DISTINCT ?property ?domain ?range
+        WHERE {
+            ?property rdf:type rdf:Property .
+            OPTIONAL { ?property rdfs:domain ?domain . }
+            OPTIONAL { ?property rdfs:range ?range . }
+            }
+        """)
+        print('properties', properties)
+        connections = g.query("""
+        SELECT DISTINCT ?source_class ?property ?target_class
+        WHERE {
+            ?s ?property ?o .
+            ?s rdf:type ?source_class .
+            ?o rdf:type ?target_class .
+            }
+
+        """)
+        print('connections', connections)
+
+        def add_node(label):
+            label = extract_label(label, False)
+            if not any(node['id'] == label for node in nodes):
+                nodes.append({'id': label, 'properties': {'label': label}})
+
+        nodes = []
+        edges = []
+        for cls in classes:
+            add_node(cls[0])
+
+        for prop, domain, range_ in properties:
+            if domain and range_:
+                add_node(domain)
+                add_node(range_)
+                edges.append({
+                    'start': domain,
+                    'end': range_,
+                    'properties': {'label': prop}
+                })
+
+        for source_class, prop, target_class in connections:
+            add_node(source_class)
+            add_node(target_class)
+            edges.append({
+                'start': source_class,
+                'end': target_class,
+                'properties': {'label': prop}
+            })
+
+        widget = GraphWidget()
+        widget.nodes = nodes
+        widget.edges = edges
+        print(edges)
+        widget.show()
