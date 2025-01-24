@@ -2,7 +2,7 @@ import inspect
 from typing import Union, Dict, Any
 
 from yfiles_jupyter_graphs import GraphWidget
-from rdflib import Graph, URIRef
+from rdflib import Graph, URIRef, Literal
 
 DEFAULT_DATA = "http://www.w3.org/People/Berners-Lee/card"
 POSSIBLE_NODE_BINDINGS = {'coordinate', 'color', 'size', 'type', 'styles', 'scale_factor', 'position',
@@ -18,6 +18,13 @@ def extract_label(term, edge):
         return term.split('/')[-1].split('#')[-1]
     else:
         return str(term)
+
+
+def safe_delete_configuration(key: str, configurations: Dict[str, Any]) -> None:
+    if key == "*":
+        configurations.clear()
+    if key in configurations:
+        del configurations[key]
 
 
 class SparqlGraphWidget:
@@ -70,6 +77,14 @@ class SparqlGraphWidget:
 
     def _create_graph(self, triples):
 
+        def find_element_by_label(array, label):
+            i = 0
+            for element in array:
+                if element['id'] == label:
+                    return i
+                i+=1
+            return None
+
         existing_nodes = []  # store created node labels in here
         nodes = []
         edges = []
@@ -84,19 +99,33 @@ class SparqlGraphWidget:
 
             o_label = str(o)
             o_extracted_label = extract_label(o, False)
+            literal = isinstance(o, Literal)
 
             p_label = str(p)
             p_extracted_label = extract_label(p, True)
 
             if s_label not in existing_nodes:
                 existing_nodes.append(s_label)
-                nodes.append({'id': s_label, 'properties': {'label': s_extracted_label, 'full_label': s_label}})
-            if o_label not in existing_nodes:
-                existing_nodes.append(o_label)
-                nodes.append({'id': o_label, 'properties': {'label': o_extracted_label, 'full_label': o_label}})
+                if literal:
+                    node = {'id': s_label, 'properties': {'label': s_extracted_label, 'full_label': s_label}}
+                    node['properties'][p_extracted_label] = o_extracted_label
+                    nodes.append(node)
+                else:
+                    nodes.append({'id': s_label, 'properties': {'label': s_extracted_label, 'full_label': s_label}})
+                existing_nodes.append(s_label)
+            elif literal:
+                index = find_element_by_label(nodes, s_label)
+                nodes[index]['properties'][p_extracted_label] = o_extracted_label
 
-            edges.append({'start': s_label, 'end': o_label,
-                          'properties': {'label': p_extracted_label, 'full_label': p_label}})
+            if not literal:
+
+                if o_label not in existing_nodes:
+                    existing_nodes.append(o_label)
+                    nodes.append({'id': o_label, 'properties': {'label': o_extracted_label, 'full_label': o_label}})
+                    existing_nodes.append(o_label)
+
+                edges.append({'start': s_label, 'end': o_label,
+                              'properties': {'label': p_extracted_label, 'full_label': p_label}})
 
         widget.nodes = nodes
         widget.edges = edges
@@ -105,13 +134,15 @@ class SparqlGraphWidget:
         self.__apply_node_mappings(widget)
         return widget
 
-    # noinspection PyShadowingBuiltins
-    def add_predicate_configuration(self, type: Union[str, list[str]], **kwargs: Dict[str, Any]) -> None:
+   # def create_schema_graph(self, xml):
+
+
+    def add_predicate_configuration(self, predicate: Union[str, list[str]], **kwargs: Dict[str, Any]) -> None:
         """
         Adds a configuration object for the given relationship `type`(s).
 
         Args:
-            type (Union[str, list[str]]): The relationship type(s) for which this configuration should be used. Supports `*` to address all labels.
+            predicate (Union[str, list[str]]): The predicate type(s) for which this configuration should be used. Supports `*` to address all labels.
             **kwargs (Dict): Visualization configuration for the given node label. The following arguments are supported:
 
                 - `text` (Union[str, Callable]): The text to be displayed on the node.  By default, the relationship's type is used.
@@ -130,18 +161,18 @@ class SparqlGraphWidget:
             config["label"] = text_binding
 
         cloned_config = {key: value for key, value in config.items()}
-        if isinstance(type, list):
-            for t in type:
+        if isinstance(predicate, list):
+            for t in predicate:
                 self._edge_configurations[t] = cloned_config
         else:
-            self._edge_configurations[type] = cloned_config
+            self._edge_configurations[predicate] = cloned_config
 
-    def add_subject_configuration(self, labels: Union[str, list[str]], **kwargs: Dict[str, Any]) -> None:
+    def add_subject_configuration(self, predicate: Union[str, list[str]], **kwargs: Dict[str, Any]) -> None:
         """
         Adds a configuration object for the given node `label`(s).
 
         Args:
-            labels (Union[str, list[str]]): The node label(s) for which this configuration should be used. Supports `*` to address all labels.
+            predicate (Union[str, list[str]]): The node predicate type(s) for which this configuration should be used. Supports `*` to address all labels.
             **kwargs (Dict[str, Any]): Visualization configuration for the given node label. The following arguments are supported:
 
                 - `text` (Union[str, Callable]): The text to be displayed on the node. By default, the node's label is used.
@@ -163,18 +194,18 @@ class SparqlGraphWidget:
             config["label"] = text_binding
 
         cloned_config = {key: value for key, value in config.items()}
-        if isinstance(labels, list):
-            for label in labels:
+        if isinstance(predicate, list):
+            for label in predicate:
                 self._subject_configurations[label] = cloned_config
         else:
-            self._subject_configurations[labels] = cloned_config
+            self._subject_configurations[predicate] = cloned_config
 
-    def add_object_configuration(self, labels: Union[str, list[str]], **kwargs: Dict[str, Any]) -> None:
+    def add_object_configuration(self, predicate: Union[str, list[str]], **kwargs: Dict[str, Any]) -> None:
         """
         Adds a configuration object for the given node `label`(s).
 
         Args:
-            labels (Union[str, list[str]]): The node label(s) for which this configuration should be used. Supports `*` to address all labels.
+            predicate (Union[str, list[str]]): The node predicate type(s) for which this configuration should be used. Supports `*` to address all labels.
             **kwargs (Dict[str, Any]): Visualization configuration for the given node label. The following arguments are supported:
 
                 - `text` (Union[str, Callable]): The text to be displayed on the node. By default, the node's label is used.
@@ -196,11 +227,11 @@ class SparqlGraphWidget:
             config["label"] = text_binding
 
         cloned_config = {key: value for key, value in config.items()}
-        if isinstance(labels, list):
-            for label in labels:
+        if isinstance(predicate, list):
+            for label in predicate:
                 self._object_configurations[label] = cloned_config
         else:
-            self._object_configurations[labels] = cloned_config
+            self._object_configurations[predicate] = cloned_config
 
     def __apply_node_mappings(self, widget):
         affected_subjects = {}
@@ -285,3 +316,54 @@ class SparqlGraphWidget:
                 return default_mapping(item)
 
         return mapping
+
+    def del_object_configuration(self, predicate: Union[str, list[str]]) -> None:
+        """
+        Deletes the configuration object for the given node object predicate `type`(s).
+
+        Args:
+            predicate (Union[str, list[str]]): The node object for the predicate types(s) for which the configuration should be deleted. Supports `*` to address all labels.
+
+        Returns:
+            None
+        """
+        if isinstance(predicate, list):
+            for label in predicate:
+                safe_delete_configuration(label, self._object_configurations)
+        else:
+            safe_delete_configuration(predicate, self._object_configurations)
+
+    def del_subject_configuration(self, predicate: Union[str, list[str]]) -> None:
+        """
+        Deletes the configuration object for the given node subject predicate `type`(s).
+
+        Args:
+            predicate (Union[str, list[str]]): The node subject for the predicate types(s) for which the configuration should be deleted. Supports `*` to address all labels.
+
+        Returns:
+            None
+        """
+        if isinstance(predicate, list):
+            for label in predicate:
+                safe_delete_configuration(label, self._subject_configurations)
+        else:
+            safe_delete_configuration(predicate, self._subject_configurations)
+
+    def del_predicate_configuration(self, predicate: Union[str, list[str]]) -> None:
+        """
+        Deletes the configuration object for the given relationship `type`(s).
+
+        Args:
+            predicate (Union[str, list[str]]): The relationship type(s) for which the configuration should be deleted. Supports `*` to address all types.
+
+        Returns:
+            None
+        """
+        if isinstance(predicate, list):
+            for label in predicate:
+                safe_delete_configuration(label, self._edge_configurations)
+        else:
+            safe_delete_configuration(predicate, self._edge_configurations)
+
+    def show_schema(self):
+        pass
