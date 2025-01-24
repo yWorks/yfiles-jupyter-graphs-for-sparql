@@ -1,0 +1,5 @@
+dist
+node_modules
+.ipynb_checkpoints
+.idea
+/src/yfiles_jupyter_graphs_for_sparql.egg-info/
