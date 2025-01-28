@@ -370,6 +370,7 @@ class SparqlGraphWidget:
             WHERE {
                 ?class rdf:type rdfs:Class .
                 }
+            LIMIT 25
         """)
         properties = g.query("""
         SELECT DISTINCT ?property ?domain ?range
@@ -382,6 +383,7 @@ class SparqlGraphWidget:
             
             FILTER (BOUND(?domain) || BOUND(?range))
             }
+        LIMIT 25
         """)
         connections = g.query("""
         SELECT DISTINCT ?source_class ?property ?target_class
@@ -401,6 +403,7 @@ class SparqlGraphWidget:
             FILTER (BOUND(?source_class) && BOUND(?target_class))
             }
         }
+        LIMIT 25
         """)
 
         def add_node(label):
