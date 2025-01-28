@@ -374,24 +374,38 @@ class SparqlGraphWidget:
         properties = g.query("""
         SELECT DISTINCT ?property ?domain ?range
         WHERE {
-            ?property rdf:type rdf:Property .
+            ?property rdf:type rdf:Property .        
+            
             OPTIONAL { ?property rdfs:domain ?domain . }
+            
             OPTIONAL { ?property rdfs:range ?range . }
+            
+            FILTER (BOUND(?domain) || BOUND(?range))
             }
         """)
         connections = g.query("""
         SELECT DISTINCT ?source_class ?property ?target_class
         WHERE {
-            ?s ?property ?o .
-            ?s rdf:type ?source_class .
-            ?o rdf:type ?target_class .
+            {
+                ?s ?property ?o .
+                ?s rdf:type ?source_class .
+                ?o rdf:type ?target_class .
             }
-
+            UNION
+            {
+                ?property rdf:type rdf:Property .
+        
+            OPTIONAL { ?property rdfs:domain ?source_class . }
+            OPTIONAL { ?property rdfs:range ?target_class . }
+            
+            FILTER (BOUND(?source_class) && BOUND(?target_class))
+            }
+        }
         """)
 
         def add_node(label):
             label = extract_label(label, False)
-            if not any(node['id'] == label for node in nodes):
+            if label and not any(node['id'] == label for node in nodes):
                 nodes.append({'id': label, 'properties': {'label': label}})
 
         nodes = []
@@ -400,24 +414,42 @@ class SparqlGraphWidget:
             add_node(cls[0])
 
         for prop, domain, range_ in properties:
-            if domain and range_:
-                add_node(domain)
-                add_node(range_)
-                edges.append({
-                    'start': domain,
-                    'end': range_,
-                    'properties': {'label': prop}
-                })
+            if domain or range_:
+                if domain:
+                    add_node(domain)
+                    d_label = extract_label(domain, False)
+                if range_:
+                    add_node(range_)
+                    r_label = extract_label(range_, False)
 
-        for source_class, prop, target_class in connections:
-            s_label = extract_label(source_class, False)
-            t_label = extract_label(target_class, False)
-            add_node(s_label)
-            add_node(t_label)
+                p_label = extract_label(prop, False)
+
+                if domain and range_:
+                    pass            # handled by connections
+                elif domain:
+                    edges.append({
+                        'start': d_label,
+                        'end': p_label,
+                        'properties': {'label': 'domain'}
+                    })
+                    add_node(prop)
+                elif range_:
+                    edges.append({
+                        'start': p_label,
+                        'end': r_label,
+                        'properties': {'label': 'range'}
+                    })
+                    add_node(prop)
+
+        for source, prop, target in connections:
+            s_label = extract_label(source, False)
+            t_label = extract_label(target, False)
+            add_node(source)
+            add_node(target)
             edges.append({
                 'start': s_label,
                 'end': t_label,
-                'properties': {'label': extract_label(prop, True),  'full label': prop}
+                'properties': {'label': extract_label(prop, True), 'full label': prop}
             })
 
         if nodes == [] or edges == []:
@@ -426,4 +458,5 @@ class SparqlGraphWidget:
         widget.directed = True
         widget.nodes = nodes
         widget.edges = edges
+        widget.hierarchic_layout()
         widget.show()
