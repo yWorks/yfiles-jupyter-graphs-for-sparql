@@ -371,7 +371,6 @@ class SparqlGraphWidget:
                 ?class rdf:type rdfs:Class .
                 }
         """)
-        print('classes', classes)
         properties = g.query("""
         SELECT DISTINCT ?property ?domain ?range
         WHERE {
@@ -380,7 +379,6 @@ class SparqlGraphWidget:
             OPTIONAL { ?property rdfs:range ?range . }
             }
         """)
-        print('properties', properties)
         connections = g.query("""
         SELECT DISTINCT ?source_class ?property ?target_class
         WHERE {
@@ -390,7 +388,6 @@ class SparqlGraphWidget:
             }
 
         """)
-        print('connections', connections)
 
         def add_node(label):
             label = extract_label(label, False)
@@ -413,16 +410,20 @@ class SparqlGraphWidget:
                 })
 
         for source_class, prop, target_class in connections:
-            add_node(source_class)
-            add_node(target_class)
+            s_label = extract_label(source_class, False)
+            t_label = extract_label(target_class, False)
+            add_node(s_label)
+            add_node(t_label)
             edges.append({
-                'start': source_class,
-                'end': target_class,
-                'properties': {'label': prop}
+                'start': s_label,
+                'end': t_label,
+                'properties': {'label': extract_label(prop, True),  'full label': prop}
             })
 
+        if nodes == [] or edges == []:
+            raise Exception('no schema data found')
         widget = GraphWidget()
+        widget.directed = True
         widget.nodes = nodes
         widget.edges = edges
-        print(edges)
         widget.show()
