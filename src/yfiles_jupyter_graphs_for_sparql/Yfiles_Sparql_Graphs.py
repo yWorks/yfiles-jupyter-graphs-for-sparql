@@ -1,10 +1,10 @@
 import inspect
+import re
 from typing import Union, Dict, Any
 
 from yfiles_jupyter_graphs import GraphWidget
 from rdflib import Graph, URIRef, Literal
 
-DEFAULT_DATA = "http://www.w3.org/People/Berners-Lee/card"
 POSSIBLE_NODE_BINDINGS = {'coordinate', 'color', 'size', 'type', 'styles', 'scale_factor', 'position',
                           'layout', 'property', 'label'}
 POSSIBLE_EDGE_BINDINGS = {'color', 'thickness_factor', 'property', 'label'}
@@ -28,7 +28,7 @@ def safe_delete_configuration(key: str, configurations: Dict[str, Any]) -> None:
 
 
 class SparqlGraphWidget:
-    def __init__(self, data=DEFAULT_DATA, login=None, pwd=None):
+    def __init__(self, data=None, limit=10, login=None, pwd=None):
 
         graph = Graph().parse(data, format="turtle")
         self.endpoint = data
@@ -42,6 +42,7 @@ class SparqlGraphWidget:
         self._edge_configurations = {}
         self._parent_configurations = set()
         self.widget = GraphWidget()
+        self.limit = limit
 
     def set_endpoint(self, endpoint):
 
@@ -60,7 +61,28 @@ class SparqlGraphWidget:
 
         return self.login, self.pwd
 
+    def set_limit(self, limit):
+        self.limit = limit
+
+    def get_limit(self):
+        return self.limit
+
+    def _limit_query(self, query):
+        limit_pattern = re.compile(r"(?i)\bLIMIT\s+(\d+)", re.IGNORECASE)
+        match = limit_pattern.search(query)
+
+        if match:
+            user_limit = int(match.group(1))
+            if user_limit > self.limit:
+                query = limit_pattern.sub(f"LIMIT {self.limit}", query)
+        else:
+            query = query.strip() + f"\nLIMIT {self.limit}"
+
+        return query
+
     def show_query(self, query):
+
+        query = self._limit_query(query)
 
         res = self.graph.query(query)
         try:
@@ -239,6 +261,7 @@ class SparqlGraphWidget:
                             WHERE {{
                                     ?subject :{predicate} ?object .
                             }}
+                            LIMIT {self.limit}
                         """
             result = self.graph.query(query)
             for row in result:
@@ -249,6 +272,7 @@ class SparqlGraphWidget:
                             WHERE {{
                                     ?subject :{predicate} ?object .
                             }}
+                            LIMIT {self.limit}
                         """
             result = self.graph.query(query)
             for row in result:
@@ -365,45 +389,44 @@ class SparqlGraphWidget:
     def show_schema(self):
         g = self.graph
 
-        classes = g.query("""
+        classes = g.query(f"""
             SELECT DISTINCT ?class
-            WHERE {
+            WHERE {{
                 ?class rdf:type rdfs:Class .
-                }
-            LIMIT 25
+                }}
+            LIMIT {self.limit//2}
         """)
-        properties = g.query("""
-        SELECT DISTINCT ?property ?domain ?range
-        WHERE {
-            ?property rdf:type rdf:Property .        
-            
-            OPTIONAL { ?property rdfs:domain ?domain . }
-            
-            OPTIONAL { ?property rdfs:range ?range . }
-            
-            FILTER (BOUND(?domain) || BOUND(?range))
-            }
-        LIMIT 25
+        properties = g.query(f"""
+            SELECT DISTINCT ?property ?domain ?range
+            WHERE {{
+                ?property rdf:type rdf:Property .        
+                
+                OPTIONAL {{ ?property rdfs:domain ?domain . }}
+                
+                OPTIONAL {{ ?property rdfs:range ?range . }}
+                
+                FILTER (BOUND(?domain) || BOUND(?range))
+                }}
+            LIMIT {self.limit//2}
         """)
-        connections = g.query("""
+        connections = g.query(f"""
         SELECT DISTINCT ?source_class ?property ?target_class
-        WHERE {
-            {
+        WHERE {{
+            {{
                 ?s ?property ?o .
                 ?s rdf:type ?source_class .
                 ?o rdf:type ?target_class .
-            }
+            }}
             UNION
-            {
+            {{
                 ?property rdf:type rdf:Property .
         
-            OPTIONAL { ?property rdfs:domain ?source_class . }
-            OPTIONAL { ?property rdfs:range ?target_class . }
+            OPTIONAL {{ ?property rdfs:domain ?source_class . }}
+            OPTIONAL {{ ?property rdfs:range ?target_class . }}
             
             FILTER (BOUND(?source_class) && BOUND(?target_class))
-            }
-        }
-        LIMIT 25
+            }}
+        }}
         """)
 
         def add_node(label):
