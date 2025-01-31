@@ -28,7 +28,7 @@ def safe_delete_configuration(key: str, configurations: Dict[str, Any]) -> None:
 
 
 class SparqlGraphWidget:
-    def __init__(self, data=None, limit=10, login=None, pwd=None):
+    def __init__(self, data=None, limit=50, login=None, pwd=None):
 
         graph = Graph().parse(data, format="turtle")
         self.endpoint = data
