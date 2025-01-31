@@ -46,7 +46,7 @@ The main class `SparqlGraphWidget` provides the following API:
 | Argument | Description                                  | Default |
 |----------|----------------------------------------------|---------|
 | `data`   | The data endpoint the queries are sent to    | `None`  |
-| `limit`  | The node limit which is added to all queries | `10`    |
+| `limit`  | The node limit which is added to all queries | `50`    |
 
 ### Methods 
 
