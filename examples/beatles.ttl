@@ -1,0 +1,33 @@
+PREFIX :    <http://example.com/test/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+:The_Beatles
+    a       :Band ;
+    :name   "The Beatles" ;
+    :member :John_Lennon, :Paul_McCartney, :George_Harrison, :Ringo_Starr .
+
+:John_Lennon
+    a :SoloArtist .
+
+:Paul_McCartney
+    a :SoloArtist .
+
+:Ringo_Starr
+    a :SoloArtist .
+
+:George_Harrison
+    a :SoloArtist .
+
+:Please_Please_Me
+    a       :Album ;
+    :name   "Please Please Me" ;
+    :date   "1963-03-22"^^xsd:date ;
+    :artist :The_Beatles ;
+    :track  :Love_Me_Do .
+
+:Love_Me_Do
+    a       :Song ;
+    :name   "Love Me Do" ;
+    :length 125 ;
+    :writer :John_Lennon, :Paul_McCartney .
