@@ -28,15 +28,15 @@ def safe_delete_configuration(key: str, configurations: Dict[str, Any]) -> None:
 
 
 class SparqlGraphWidget:
-    def __init__(self, data=None, limit=50, login=None, pwd=None):
+    def __init__(self, data=None, limit=50):
 
-        graph = Graph().parse(data, format="turtle")
-        self.endpoint = data
-        if login and pwd:
-            self.login = login
-            self.pwd = pwd
+        self.graph = None
 
-        self.graph = graph
+        if data:
+            graph = Graph().parse(data, format="turtle")
+            self.graph = graph
+
+        self.data = data
         self._subject_configurations = {}
         self._object_configurations = {}
         self._edge_configurations = {}
@@ -44,22 +44,12 @@ class SparqlGraphWidget:
         self.widget = GraphWidget()
         self.limit = limit
 
-    def set_endpoint(self, endpoint):
+    def set_data(self, data):
+        self.graph = Graph().parse(data, format="turtle")
+        self.data = data
 
-        self.endpoint = endpoint
-
-    def get_endpoint(self):
-
-        return self.endpoint
-
-    def set_credentials(self, login, pwd):
-
-        self.login = login
-        self.pwd = pwd
-
-    def get_credentials(self):
-
-        return self.login, self.pwd
+    def get_data(self):
+        return self.data
 
     def set_limit(self, limit):
         self.limit = limit
@@ -389,6 +379,9 @@ class SparqlGraphWidget:
     def show_schema(self):
         g = self.graph
 
+        if g is None:
+            raise Exception("No data was given to infer schema")
+
         classes = g.query(f"""
             SELECT DISTINCT ?class
             WHERE {{
@@ -479,7 +472,7 @@ class SparqlGraphWidget:
             })
 
         if nodes == [] or edges == []:
-            raise Exception('no schema data found')
+            raise Exception('no schema data found in the given graph')
         widget = GraphWidget()
         widget.directed = True
         widget.nodes = nodes
