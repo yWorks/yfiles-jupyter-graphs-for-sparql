@@ -1,6 +1,6 @@
 import inspect
 import re
-from typing import Union, Dict, Any
+from typing import Union, Dict, Any, Optional
 
 from yfiles_jupyter_graphs import GraphWidget
 from rdflib import Graph, URIRef, Literal
@@ -136,14 +136,16 @@ class SparqlGraphWidget:
                     nodes.append({'id': o_label, 'properties': {'label': o_extracted_label, 'full_label': o_label}})
                     existing_nodes.append(o_label)
 
-                edges.append({'start': s_label, 'end': o_label,
+                edges.append({'id': p_extracted_label, 'start': s_label, 'end': o_label,
                               'properties': {'label': p_extracted_label, 'full_label': p_label}})
 
         widget.nodes = nodes
         widget.edges = edges
         widget.directed = True
+        self.__create_group_nodes(widget)
         self.__apply_edge_mappings(widget)
         self.__apply_node_mappings(widget)
+        self.__apply_parent_mapping(widget)
         return widget
 
     def add_predicate_configuration(self, predicate: Union[str, list[str]], **kwargs: Dict[str, Any]) -> None:
@@ -274,6 +276,10 @@ class SparqlGraphWidget:
                     self.__configuration_mapper_factory('', key, affected_subjects,
                                                         affected_objects, default_mapping))
 
+        setattr(widget, f"_node_parent_mapping",
+                self.__configuration_mapper_factory('', 'parent_configuration', affected_subjects, affected_objects,
+                                                    lambda node: None))
+
     def __apply_edge_mappings(self, widget):
         edge_predicates = []
         for predicate in self._edge_configurations:
@@ -303,8 +309,15 @@ class SparqlGraphWidget:
 
             if predicate in configurations and binding_key in configurations[predicate]:  # or '*' in configurations
                 if binding_key == 'parent_configuration':
-                    result = None           # TODO parent, heat config
-                # result = 'GroupNode' + group_label
+                    binding = configurations[predicate].get(binding_key)
+                    if binding and callable(binding):
+                        binding = binding(item)
+                    # parent_configuration binding may either resolve to a dict or a string
+                    if isinstance(binding, dict):
+                        group_label = binding.get('text', '')
+                    else:
+                        group_label = binding
+                    result = 'GroupNode' + group_label
                 # mapping
                 elif callable(configurations.get(predicate)[binding_key]):
                     result = configurations.get(predicate)[binding_key](item)
@@ -376,6 +389,7 @@ class SparqlGraphWidget:
         else:
             safe_delete_configuration(predicate, self._edge_configurations)
 
+    # noinspection PyUnboundLocalVariable
     def show_schema(self):
         g = self.graph
 
@@ -387,7 +401,7 @@ class SparqlGraphWidget:
             WHERE {{
                 ?class rdf:type rdfs:Class .
                 }}
-            LIMIT {self.limit//2}
+            LIMIT {self.limit // 2}
         """)
         properties = g.query(f"""
             SELECT DISTINCT ?property ?domain ?range
@@ -400,7 +414,7 @@ class SparqlGraphWidget:
                 
                 FILTER (BOUND(?domain) || BOUND(?range))
                 }}
-            LIMIT {self.limit//2}
+            LIMIT {self.limit // 2}
         """)
         connections = g.query(f"""
         SELECT DISTINCT ?source_class ?property ?target_class
@@ -444,7 +458,7 @@ class SparqlGraphWidget:
                 p_label = extract_label(prop, False)
 
                 if domain and range_:
-                    pass            # handled by connections
+                    pass  # handled by connections
                 elif domain:
                     edges.append({
                         'start': d_label,
@@ -479,3 +493,127 @@ class SparqlGraphWidget:
         widget.edges = edges
         widget.hierarchic_layout()
         widget.show()
+
+    def add_parent_configuration(self, predicate: Union[str, list[str]], reverse: Optional[bool] = False) -> None:
+        """
+        Configure specific relationship types to visualize as nested hierarchies. This removes these relationships from
+        the graph and instead groups the related nodes (source and target) as parent-child.
+
+        Args:
+            predicate (Union[str, list[str]]): The relationship type(s) that should be visualized as node grouping hierarchy instead of the actual relationship.
+            reverse (bool): Which node should be considered as parent. By default, the target node is considered as parent which can be reverted with this argument.
+
+        Returns:
+            None
+        """
+        if isinstance(predicate, list):
+            for t in predicate:
+                self._parent_configurations.add((t, reverse))
+        else:
+            self._parent_configurations.add((predicate, reverse))
+
+    # noinspection PyShadowingBuiltins
+    def del_parent_relationship_configuration(self, type: Union[str, list[str]]) -> None:
+        """
+        Deletes the relationship configuration for the given `type`(s).
+
+        Args:
+            type (Union[str, list[str]]): The relationship type(s) for which the configuration should be deleted.
+
+        Returns:
+            None
+        """
+        if isinstance(type, list):
+            self._parent_configurations = {
+                rel_type for rel_type in self._parent_configurations if rel_type[0] not in type
+            }
+        else:
+            self._parent_configurations = {
+                rel_type for rel_type in self._parent_configurations if rel_type[0] != type
+            }
+
+    def __apply_parent_mapping(self, widget: GraphWidget) -> None:
+        node_to_parent = {}
+        edge_ids_to_remove = set()
+        for edge in widget.edges[:]:
+            rel_type = edge["properties"]["label"]
+            for (parent_type, is_reversed) in self._parent_configurations:
+                if rel_type == parent_type:
+                    start = edge['start']  # child node id
+                    end = edge['end']  # parent node id
+                    if is_reversed:
+                        node_to_parent[end] = start
+                    else:
+                        node_to_parent[start] = end
+                    edge_ids_to_remove.add(edge['id'])
+                    break
+
+        # use list comprehension to filter out the edges to automatically trigger model sync with the frontend
+        widget.edges = [edge for edge in widget.edges if edge['id'] not in edge_ids_to_remove]
+        current_parent_mapping = widget.get_node_parent_mapping()
+        setattr(widget, "_node_parent_mapping",
+                lambda index, node: node_to_parent.get(node['id'], current_parent_mapping(index, node)))
+
+    def __create_group_nodes(self, widget: GraphWidget) -> None:
+        group_node_properties = set()
+        group_node_values = set()
+        affected_objects = {}
+        affected_subjects = {}
+        key = 'parent_configuration'
+        for predicate in self._object_configurations:
+            if key in self._object_configurations.get(predicate):
+                query = f"""
+                        SELECT ?object
+                        WHERE {{
+                            ?subject :{predicate} ?object .
+                        }}
+                        LIMIT {self.limit}
+                """
+                result = self.graph.query(query)
+                for row in result:
+                    affected_objects[extract_label(row[0], False)] = predicate
+        for predicate in self._subject_configurations:
+            if key in self._subject_configurations.get(predicate):
+                query = f"""
+                                            SELECT ?subject
+                                            WHERE {{
+                                                    ?subject :{predicate} ?object .
+                                            }}
+                                            LIMIT {self.limit}
+                                        """
+                result = self.graph.query(query)
+                for row in result:
+                    affected_subjects[extract_label(row[0], False)] = predicate
+
+        for node in widget.nodes:
+            label = node['properties']['label']
+
+            group_node = None
+            if label in affected_subjects:
+                group_node = self._subject_configurations.get(affected_subjects.get(label)).get(key)
+            if label in affected_objects:
+                group_node = self._object_configurations.get(affected_objects.get(label)).get(key)
+
+            if group_node:
+                if callable(group_node):
+                    group_node = group_node(node)
+
+                if isinstance(group_node, str):
+                    # string or property value
+                    if group_node in node["properties"]:
+                        group_node_properties.add(str(node["properties"][group_node]))
+                    else:
+                        group_node_values.add(group_node)
+                else:
+                    # dictionary with values
+                    text = group_node.get('text', '')
+                    group_node_values.add(text)
+                    configuration = {k: v for k, v in group_node.items() if k != 'text'}
+                    if label in affected_objects:
+                        self.add_object_configuration(text, **configuration)
+                    if label in affected_subjects:
+                        self.add_subject_configuration(text, **configuration)
+
+        for group_label in group_node_properties.union(group_node_values):
+            node = {'id': 'GroupNode' + group_label, 'properties': {'label': group_label}}
+            widget.nodes = [*widget.nodes, node]
