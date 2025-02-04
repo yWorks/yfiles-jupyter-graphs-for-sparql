@@ -4,6 +4,7 @@ from typing import Union, Dict, Any, Optional
 
 from yfiles_jupyter_graphs import GraphWidget
 from rdflib import Graph, URIRef, Literal
+from SPARQLWrapper import SPARQLWrapper, POST, DIGEST, RDFXML, JSON
 
 POSSIBLE_NODE_BINDINGS = {'coordinate', 'color', 'size', 'type', 'styles', 'scale_factor', 'position',
                           'layout', 'property', 'label'}
@@ -28,24 +29,59 @@ def safe_delete_configuration(key: str, configurations: Dict[str, Any]) -> None:
 
 
 class SparqlGraphWidget:
-    def __init__(self, data=None, limit=50):
 
+    def __init__(self, limit=50, endpoint=None, pwd=None, login=None, data=None):
         self.graph = None
-
-        if data:
-            graph = Graph().parse(data, format="turtle")
-            self.graph = graph
-
         self.data = data
+        self.limit = limit
         self._subject_configurations = {}
         self._object_configurations = {}
         self._edge_configurations = {}
         self._parent_configurations = set()
         self.widget = GraphWidget()
-        self.limit = limit
+        self.endpoint = endpoint
+        self.login = login
+        self.pwd = pwd
+
+        if data:
+            self.graph = Graph().parse(data)
+
+    def _fetch_data_from_sparql(self, query):
+
+        sparql = SPARQLWrapper(self.endpoint)
+        sparql.setQuery(query)
+
+        if self.login and self.pwd:
+            sparql.setHTTPAuth(DIGEST)
+            sparql.setCredentials(self.login, self.pwd)
+            sparql.setMethod(POST)
+
+        is_select_query = query.strip().upper().startswith("SELECT")
+
+        if is_select_query:
+            sparql.setReturnFormat(JSON)
+        else:
+            sparql.setReturnFormat(RDFXML)
+
+        try:
+            results = sparql.query()
+            results = results.convert()
+
+            if is_select_query:
+                self.graph = None
+                return results
+
+            else:
+                if isinstance(results, Graph):
+                    self.graph = results
+                else:
+                    raise Exception("Unexpected data type from SPARQL query")
+
+        except Exception as e:
+            raise Exception(f"Error executing SPARQL query: {e}")
 
     def set_data(self, data):
-        self.graph = Graph().parse(data, format="turtle")
+        self.graph = Graph().parse(data)
         self.data = data
 
     def get_data(self):
@@ -73,7 +109,8 @@ class SparqlGraphWidget:
     def show_query(self, query):
 
         query = self._limit_query(query)
-
+        if self.data is None:
+            self._fetch_data_from_sparql(query)
         res = self.graph.query(query)
         try:
             widget = self._create_graph(res)
