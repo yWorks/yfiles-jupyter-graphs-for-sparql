@@ -1,5 +1,7 @@
 # yFiles-Jupyter Graphs For SPARQL
 
+![A screenshot showing the yFiles graph widget for sparql in a jupyter lab notebook](https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-sparql/main/images/Getting_started_screenshot.png)
+
 Easily visualize a [RDF](https://rdflib.readthedocs.io/en/stable/) query as a graph in a Jupyter Notebook.
 
 This packages provides an easy-to-use interface to
@@ -43,18 +45,19 @@ The main class `SparqlGraphWidget` provides the following API:
 
 - `SparqlGraphWidget`: Creates a new class instance with the following arguments
 
-| Argument | Description                                  | Default   |
-|----------|----------------------------------------------|-----------|
-| `data`   | The data endpoint the queries are sent to    | `None`    |
-| `limit`  | The node limit which is added to all queries | `50`      |
-| `layout` | Can be used to specify a general default node and edge layout. Available algorithms are: "circular", "hierarchic", "organic", "interactive_organic_layout", "orthogonal", "radial", "tree", "map", "orthogonal_edge_router", "organic_edge_router" | `organic` |
+| Argument  | Description                                                                                                                                                                                                                                        | Default  |
+|-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| `data`    | The data endpoint the queries are sent to                                                                                                                                                                                                          | `None`   |
+| `limit`   | The node limit which is added to all queries                                                                                                                                                                                                       | `50`     |
+| `wrapper` | A SPARQL wrapper, that is used to send queries to                                                                                                                                                                                                  | `None`   |
+| `layout`  | Can be used to specify a general default node and edge layout. Available algorithms are: "circular", "hierarchic", "organic", "interactive_organic_layout", "orthogonal", "radial", "tree", "map", "orthogonal_edge_router", "organic_edge_router" | `organic |
 
 
 ### Methods 
 
 > [!IMPORTANT]  
 > If you want to use SELECT query types, ensure you select all three triple components—subject, predicate, and object. Otherwise, a graph cannot be constructed from the selected data.
-> For an ex
+> For an example look at the [Getting Started](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/Getting_started.ipynb) notebook
 
 - `show_query(query)`
     - `query`: The [query](https://neo4j.com/docs/cypher-manual/current/introduction/)
@@ -141,8 +144,14 @@ the [example notebooks](https://github.com/yWorks/yfiles-jupyter-graphs/blob/mai
 
 <table>
     <tr>
+        <td><a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb"><img src="https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-sparql/refs/heads/main/images/coloredNodes_feature.png" title="Mapping visualization" alt="Mapping visualization"></a>
+        <a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb">Mapping visualization</a><br><a target="_blank" href="https://colab.research.google.com/github/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></td>
+        <td><a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/Getting_started.ipynb"><img src="https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-sparql/refs/heads/main/images/schemaBeatles.png" title="Schema visualization" alt="Schema visualization"></a>
+        <a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/Getting_started.ipynb">Schema visualization</a><br><a target="_blank" href="https://colab.research.google.com/github/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/Getting_started.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></td>
     </tr>
     <tr>
+        <td><a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb"><img src="https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-sparql/refs/heads/main/images/groupingNodes.png" title="Group Nodes" alt="Nesting visualization"></a>
+        <a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb">Grouping visualization</a><br><a target="_blank" href="https://colab.research.google.com/github/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></td>
     </tr>
 </table>
 

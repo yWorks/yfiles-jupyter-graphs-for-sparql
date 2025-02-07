@@ -1,10 +1,10 @@
 [project]
 name = "yfiles-jupyter-graphs-for-sparql"
-version = "0.0.1"
+version = "1.0.0rc1"
 authors = [
   {name = "yWorks Support Team", email= "yfileshtml@yworks.com"},
 ]
-description = "A small example package"
+description = "The open-source adapter for working with RDF databases and SPARQL queries in Jupyter notebooks leveraging the yFiles Graphs for Jupyter plugin.s"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
@@ -28,8 +28,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/pypa/sampleproject"
-Issues = "https://github.com/pypa/sampleproject/issues"
+Homepage = "https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql"
+Issues = "https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/issues"
 
 [build-system]
 requires = ["setuptools>=61.0"]
