@@ -2,7 +2,7 @@
 
 ![A screenshot showing the yFiles graph widget for sparql in a jupyter lab notebook](https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-sparql/main/images/Getting_started_screenshot.png)
 
-Easily visualize a [RDF](https://rdflib.readthedocs.io/en/stable/) query as a graph in a Jupyter Notebook.
+Easily visualize a [SPARQL](https://www.w3.org/TR/rdf-sparql-query/) query for [RDF](https://rdflib.readthedocs.io/en/stable/) graphs in a Jupyter Notebook.
 
 This packages provides an easy-to-use interface to
 the [yFiles Graphs for Jupyter](https://github.com/yWorks/yfiles-jupyter-graphs) widget to directly visualize queries.
