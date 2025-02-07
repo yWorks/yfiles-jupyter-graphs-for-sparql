@@ -21,7 +21,7 @@ from yfiles_jupyter_graphs_for_sparql import SparqlGraphWidget
 g = SparqlGraphWidget(data="https://ld.cultural.jp/sparql")
 
 q = """
-    SELECT DISTINCT ?sub ?p ?ob
+    SELECT ?sub ?p ?ob
     WHERE {
         ?sub ?p ?ob .
     }
@@ -53,14 +53,29 @@ The main class `SparqlGraphWidget` provides the following API:
 | `layout`  | Can be used to specify a general default node and edge layout. Available algorithms are: "circular", "hierarchic", "organic", "interactive_organic_layout", "orthogonal", "radial", "tree", "map", "orthogonal_edge_router", "organic_edge_router" | `organic` |
 
 
+For all arguments, there is a `set_[arg]` and `get_[arg]` method.
+
 ### Methods 
 
 > [!IMPORTANT]  
 > If you want to use SELECT query types, ensure you select all three triple components—subject, predicate, and object. Otherwise, a graph cannot be constructed from the selected data.
 > For an example look at the [Getting Started](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/Getting_started.ipynb) notebook
 
-- `show_query(query)`
-    - `query`: The [query](https://neo4j.com/docs/cypher-manual/current/introduction/)
+- `show_query(query, layout: Optional[str] = None)`
+    - `query`: The [query](https://www.w3.org/TR/rdf-sparql-query/) that should be
+      visualized.
+    - `layout (Optional[str])`: The graph layout that is used. This overwrites the general layout in this specific graph instance. The following arguments are supported:
+        - `hierarchic`
+        - `organic`
+        - `interactive_organic_layout`
+        - `circular`
+        - `circular_straight_line`
+        - `orthogonal`
+        - `tree`
+        - `radial`
+        - `map`
+        - `orthogonal_edge_router`
+        - `organic_edge_router`
 
 To get an overview of the data structure, you can use the following function. 
 The output is constrained by the `limit` property, meaning 
@@ -84,7 +99,7 @@ functions:
         - `type`: Defines a specific "type" for the node as described
           in [yFiles Graphs for Jupyter](https://yworks.github.io/yfiles-jupyter-graphs/02_graph_widget/#def-default_node_type_mappingindex-node)
           which affects the automatic positioning of nodes (same "type"s are preferred to be placed next to each other).
-        - `parent_configuration`: Configure grouping for this node label. See [grouping.ipynb](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb)
+        - `parent_configuration`: Configure grouping for this node label. See [configurations_example.ipynb](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb)
           for examples.
 
 - `add_object_configuration(predicate:  Union[str, list[str]], **kwargs: Dict[str, Any])`
@@ -99,7 +114,7 @@ functions:
         - `type`: Defines a specific "type" for the node as described
           in [yFiles Graphs for Jupyter](https://yworks.github.io/yfiles-jupyter-graphs/02_graph_widget/#def-default_node_type_mappingindex-node)
           which affects the automatic positioning of nodes (same "type"s are preferred to be placed next to each other).
-        - `parent_configuration`: Configure grouping for this node label. See [grouping.ipynb](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb)
+        - `parent_configuration`: Configure grouping for this node label. See [configurations_example.ipynb](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb)
           for examples.
 
 - `add_predicate_configuration(type:  Union[str, list[str]], **kwargs: Dict[str, Any])`
