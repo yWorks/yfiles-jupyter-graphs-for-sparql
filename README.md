@@ -84,6 +84,8 @@ functions:
         - `type`: Defines a specific "type" for the node as described
           in [yFiles Graphs for Jupyter](https://yworks.github.io/yfiles-jupyter-graphs/02_graph_widget/#def-default_node_type_mappingindex-node)
           which affects the automatic positioning of nodes (same "type"s are preferred to be placed next to each other).
+        - `parent_configuration`: Configure grouping for this node label. See [grouping.ipynb](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb)
+          for examples.
 
 - `add_object_configuration(predicate:  Union[str, list[str]], **kwargs: Dict[str, Any])`
     - `predicate`: The predicate of the object this configuration should be used for.
@@ -97,6 +99,8 @@ functions:
         - `type`: Defines a specific "type" for the node as described
           in [yFiles Graphs for Jupyter](https://yworks.github.io/yfiles-jupyter-graphs/02_graph_widget/#def-default_node_type_mappingindex-node)
           which affects the automatic positioning of nodes (same "type"s are preferred to be placed next to each other).
+        - `parent_configuration`: Configure grouping for this node label. See [grouping.ipynb](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb)
+          for examples.
 
 - `add_predicate_configuration(type:  Union[str, list[str]], **kwargs: Dict[str, Any])`
     - `type`: The predicate type for which this configuration should be used.
@@ -105,12 +109,19 @@ functions:
         - `color`: The edge's color.
         - `thickness_factor`: The edge's stroke thickness factor. By default, `1`.
         - `property`: Allows to specify additional properties on the edge, which may be bound by other bindings.
+      
+
+- `add_parent_relationship_configuration(type: Union[str, list[str]], reverse: Optional[bool] = False) -> None`
+    - `type`: The predicate type that should be visualized as node grouping hierarchy instead of the actual relationship.
+    - `reverse`: By default the target node is considered as parent. This can be reverted with this argument.
 
 To remove a configuration use the following functions: 
 
 - `del_object_configuration(type)`: Deletes configuration for the given object predicate type.
 - `del_subject_configuration(type)`: Deletes configuration for the given subject predicatetype.
 - `del_edge_configurations(type)`: Deletes configuration for the given predicate type.
+- `del_parent_predicate_configuration(type: Union[str, list[str]]) -> None`: Deletes configuration for the given parent predicate type(s).
+
 
 ## How configuration bindings are resolved
 

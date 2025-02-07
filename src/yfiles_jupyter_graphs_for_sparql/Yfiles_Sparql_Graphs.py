@@ -552,9 +552,9 @@ class SparqlGraphWidget:
             self._parent_configurations.add((predicate, reverse))
 
     # noinspection PyShadowingBuiltins
-    def del_parent_relationship_configuration(self, type: Union[str, list[str]]) -> None:
+    def del_parent_predicate_configuration(self, type: Union[str, list[str]]) -> None:
         """
-        Deletes the relationship configuration for the given `type`(s).
+        Deletes the predicate configuration for the given `type`(s).
 
         Args:
             type (Union[str, list[str]]): The relationship type(s) for which the configuration should be deleted.
