@@ -1,4 +1,4 @@
-# Yfiles-Jupyter Graphs For RDF SPARQL
+# yFiles-Jupyter Graphs For SPARQL
 
 Easily visualize a [RDF](https://rdflib.readthedocs.io/en/stable/) query as a graph in a Jupyter Notebook.
 
@@ -28,7 +28,7 @@ g.show_query(q)
 ```
 
 See
-examples
+[examples](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/tree/main/examples)
 
 ## Supported Environments
 
@@ -43,12 +43,18 @@ The main class `SparqlGraphWidget` provides the following API:
 
 - `SparqlGraphWidget`: Creates a new class instance with the following arguments
 
-| Argument | Description                                  | Default |
-|----------|----------------------------------------------|---------|
-| `data`   | The data endpoint the queries are sent to    | `None`  |
-| `limit`  | The node limit which is added to all queries | `50`    |
+| Argument | Description                                  | Default   |
+|----------|----------------------------------------------|-----------|
+| `data`   | The data endpoint the queries are sent to    | `None`    |
+| `limit`  | The node limit which is added to all queries | `50`      |
+| `layout` | Can be used to specify a general default node and edge layout. Available algorithms are: "circular", "hierarchic", "organic", "interactive_organic_layout", "orthogonal", "radial", "tree", "map", "orthogonal_edge_router", "organic_edge_router" | `organic` |
+
 
 ### Methods 
+
+> [!IMPORTANT]  
+> If you want to use SELECT query types, ensure you select all three triple components—subject, predicate, and object. Otherwise, a graph cannot be constructed from the selected data.
+> For an ex
 
 - `show_query(query)`
     - `query`: The [query](https://neo4j.com/docs/cypher-manual/current/introduction/)
@@ -63,7 +69,7 @@ only a partial schema may be displayed depending on the dataset.
 The graph visualization can be adjusted by adding configurations to each node label or edge type with the following
 functions:
 
-- `add_subject_configuration(predicate, **kwargs)`
+- `add_subject_configuration(predicate: Union[str, list[str]], **kwargs: Dict[str, Any])`
     - `predicate`: The predicate of the subject this configuration should be used for.
     - `**kwargs`: Visualization configuration for the given node label. The following arguments are supported:
         - `text`: The text that displayed at the node. By default, the node's label is used.
@@ -76,7 +82,7 @@ functions:
           in [yFiles Graphs for Jupyter](https://yworks.github.io/yfiles-jupyter-graphs/02_graph_widget/#def-default_node_type_mappingindex-node)
           which affects the automatic positioning of nodes (same "type"s are preferred to be placed next to each other).
 
-- `add_object_configuration(predicate, **kwargs)`
+- `add_object_configuration(predicate:  Union[str, list[str]], **kwargs: Dict[str, Any])`
     - `predicate`: The predicate of the object this configuration should be used for.
     - `**kwargs`: Visualization configuration for the given node label. The following arguments are supported:
         - `text`: The text that displayed at the node. By default, the node's label is used.
@@ -89,7 +95,7 @@ functions:
           in [yFiles Graphs for Jupyter](https://yworks.github.io/yfiles-jupyter-graphs/02_graph_widget/#def-default_node_type_mappingindex-node)
           which affects the automatic positioning of nodes (same "type"s are preferred to be placed next to each other).
 
-- `add_predicate_configuration(type, **kwargs)`
+- `add_predicate_configuration(type:  Union[str, list[str]], **kwargs: Dict[str, Any])`
     - `type`: The predicate type for which this configuration should be used.
     - `**kwargs`: Visualization configuration for the given predicate type. The following arguments are supported:
         - `text`: The text that displayed at the edge. By default, the predicate's type is used.
@@ -135,16 +141,8 @@ the [example notebooks](https://github.com/yWorks/yfiles-jupyter-graphs/blob/mai
 
 <table>
     <tr>
-        <td><a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/examples/feature_example.ipynb"><img src="https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-neo4j/refs/heads/main/images/features/heat_feature.png" title="Heatmap visualization" alt="Heatmap visualization"></a>
-        <a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/examples/feature_example.ipynb">Heatmap visualization</a><br><a target="_blank" href="https://colab.research.google.com/github/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/examples/feature_example.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></td>
-        <td><a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/examples/feature_example.ipynb"><img src="https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-neo4j/refs/heads/main/images/features/map_feature.png" title="Geospatial data visualization" alt="Geospatial data visualization"></a>
-        <a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/examples/feature_example.ipynb">Geospatial data visualization</a><br><a target="_blank" href="https://colab.research.google.com/github/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/examples/feature_example.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></td>
     </tr>
     <tr>
-        <td><a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/examples/feature_example.ipynb"><img src="https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-neo4j/refs/heads/main/images/features/size_feature.png" title="Data-driven item visualization" alt="Data-driven item visualization"></a>
-        <a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/examples/feature_example.ipynb">Data-driven item visualization</a><br><a target="_blank" href="https://colab.research.google.com/github/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/examples/feature_example.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></td>
-        <td><a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/examples/grouping.ipynb"><img src="https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-neo4j/refs/heads/main/images/features/grouping_feature.png" title="Grouped items" alt="node nesting"></a>
-        <a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/examples/grouping.ipynb">Group items</a><br><a target="_blank" href="https://colab.research.google.com/github/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/examples/grouping.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></td>
     </tr>
 </table>
 
@@ -153,7 +151,7 @@ For a detailed feature guide, check out the main widget [example notebooks](http
 ## Code of Conduct
 
 This project and everyone participating in it is governed by
-the [Code of Conduct](https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/CODE_OF_CONDUCT.md).
+the [Code of Conduct](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code.
 Please report unacceptable behavior to [contact@yworks.com](mailto:contact@yworks.com).
 
@@ -163,11 +161,11 @@ This widget is by no means perfect.
 If you find something is not working as expected
 we are glad to receive an issue report from you.
 Please make sure
-to [search for existing issues](https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/search?q=is%3Aissue) first
+to [search for existing issues](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/search?q=is%3Aissue) first
 and check if the issue is not an unsupported feature or known issue.
 If you did not find anything related, report a new issue with necessary information.
 Please also provide a clear and descriptive title and stick to the issue templates.
-See [issues](https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/issues).
+See [issues](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/issues).
 
 ## Dependencies
 
@@ -175,4 +173,4 @@ See [issues](https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/issues).
 * [rdfLib](https://rdflib.readthedocs.io/en/stable/)
 
 ## License
-See [LICENSE](https://github.com/yWorks/yfiles-jupyter-graphs-for-neo4j/blob/main/LICENSE.md) file.
+See [LICENSE](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/LICENSE.md) file.
