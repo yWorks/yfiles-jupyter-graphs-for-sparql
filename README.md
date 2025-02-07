@@ -50,7 +50,7 @@ The main class `SparqlGraphWidget` provides the following API:
 | `data`    | The data endpoint the queries are sent to                                                                                                                                                                                                          | `None`   |
 | `limit`   | The node limit which is added to all queries                                                                                                                                                                                                       | `50`     |
 | `wrapper` | A SPARQL wrapper, that is used to send queries to                                                                                                                                                                                                  | `None`   |
-| `layout`  | Can be used to specify a general default node and edge layout. Available algorithms are: "circular", "hierarchic", "organic", "interactive_organic_layout", "orthogonal", "radial", "tree", "map", "orthogonal_edge_router", "organic_edge_router" | `organic |
+| `layout`  | Can be used to specify a general default node and edge layout. Available algorithms are: "circular", "hierarchic", "organic", "interactive_organic_layout", "orthogonal", "radial", "tree", "map", "orthogonal_edge_router", "organic_edge_router" | `organic` |
 
 
 ### Methods 
