@@ -367,13 +367,16 @@ class SparqlGraphWidget:
 
                 return result
 
-            # call default mapping
-            # some default mappings do not support "index" as first parameter
-            parameters = inspect.signature(default_mapping).parameters
-            if len(parameters) > 1 and parameters[list(parameters)[0]].annotation == int:
-                return default_mapping(index, item)
+            if binding_key == "label":
+                return SparqlGraphWidget.__get_sparql_item_text(item)
             else:
-                return default_mapping(item)
+                # call default mapping
+                # some default mappings do not support "index" as first parameter
+                parameters = inspect.signature(default_mapping).parameters
+                if len(parameters) > 1 and parameters[list(parameters)[0]].annotation == int:
+                    return default_mapping(index, item)
+                else:
+                    return default_mapping(item)
 
         return mapping
 
@@ -653,3 +656,11 @@ class SparqlGraphWidget:
         for group_label in group_node_properties.union(group_node_values):
             node = {'id': 'GroupNode' + group_label, 'properties': {'label': group_label}}
             widget.nodes = [*widget.nodes, node]
+
+    @staticmethod
+    def __get_sparql_item_text(element: Dict) -> Union[str, None]:
+        lowercase_element_props = {key.lower(): value for key, value in element.get('properties', {}).items()}
+        for key in SPARQL_LABEL_KEYS:
+            if key in lowercase_element_props:
+                return str(lowercase_element_props[key])
+        return None
