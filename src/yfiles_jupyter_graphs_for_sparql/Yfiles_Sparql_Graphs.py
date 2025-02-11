@@ -45,6 +45,8 @@ class SparqlGraphWidget:
         self._wrapper = wrapper
         self._graph_layout = layout
         self.graph = None
+        self._node_styling = None
+        self._edge_styling = None
 
     def set_limit(self, limit):
         self.limit = limit
@@ -99,7 +101,7 @@ class SparqlGraphWidget:
                 return triples
             # DESCRIBE, CONSTRUCT query
 
-            return ret  #.serialize()
+            return ret
 
     def show_query(self, query, layout=None):
 
@@ -288,7 +290,10 @@ class SparqlGraphWidget:
                     affected_subjects[extract_label(row[0], False)] = predicate
 
         for key in POSSIBLE_NODE_BINDINGS:
-            default_mapping = getattr(widget, f"default_node_{key}_mapping")
+            if self._node_styling is not None:
+                default_mapping = self._node_styling
+            else:
+                default_mapping = getattr(widget, f"default_node_{key}_mapping")
             setattr(widget, f"_node_{key}_mapping",
                     self.__configuration_mapper_factory('', key, affected_subjects,
                                                         affected_objects, default_mapping))
@@ -303,7 +308,10 @@ class SparqlGraphWidget:
             edge_predicates.append(predicate)
 
         for key in POSSIBLE_EDGE_BINDINGS:
-            default_mapping = getattr(widget, f"default_edge_{key}_mapping")
+            if self._edge_styling is not None:
+                default_mapping = self._edge_styling
+            else:
+                default_mapping = getattr(widget, f"default_edge_{key}_mapping")
             setattr(widget, f"_edge_{key}_mapping",
                     self.__configuration_mapper_factory(edge_predicates, key, {}, {},
                                                         default_mapping))
@@ -587,29 +595,11 @@ class SparqlGraphWidget:
         key = 'parent_configuration'
         for predicate in self._object_configurations:
             if key in self._object_configurations.get(predicate):
-                query = f"""
-                        SELECT ?s ?p ?o
-                        WHERE {{
-                            ?s ?p ?o .
-                            FILTER(CONTAINS(str(?p), "{predicate}"))
-                        }}
-                        LIMIT {self.limit}
-                """
-                #result = self._query(query)
                 for row in self._lastQueryResult:
                     if predicate in str(row[1]):
                         affected_objects[extract_label(row[2], False)] = predicate
         for predicate in self._subject_configurations:
             if key in self._subject_configurations.get(predicate):
-                query = f"""
-                                            SELECT ?s ?p ?o
-                                            WHERE {{
-                                                ?s ?p ?o .
-                                                FILTER(CONTAINS(str(?p), "{predicate}"))
-                                            }}
-                                            LIMIT {self.limit}
-                                        """
-                #result = self._query(query)
                 for row in self._lastQueryResult:
                     if predicate in str(row[1]):
                         affected_subjects[extract_label(row[0], False)] = predicate
@@ -654,3 +644,15 @@ class SparqlGraphWidget:
             if key in lowercase_element_props:
                 return str(lowercase_element_props[key])
         return None
+
+    def set_node_styling(self, mapping):
+        self._node_styling = mapping
+
+    def get_node_styling(self):
+        return self._node_styling
+
+    def set_edge_styling(self, mapping):
+        self._edge_styling = mapping
+
+    def get_edge_styling(self):
+        return self._edge_styling
