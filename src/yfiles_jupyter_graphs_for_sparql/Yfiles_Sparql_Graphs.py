@@ -3,7 +3,7 @@ import re
 from typing import Union, Dict, Any, Optional
 
 from yfiles_jupyter_graphs import GraphWidget
-from rdflib import Graph, URIRef, Literal
+from rdflib import Literal
 
 POSSIBLE_NODE_BINDINGS = {'coordinate', 'color', 'size', 'type', 'styles', 'scale_factor', 'position',
                           'layout', 'property', 'label'}
@@ -15,10 +15,14 @@ def extract_label(term, edge):
     """
         Extracts labels from the URI Links
     """
-    if isinstance(term, URIRef) or edge:
-        return term.split('/')[-1].split('#')[-1]
+    s = str(term)
+    if edge or s.startswith("http://") or s.startswith("https://"):
+        if '#' in s:
+            return s.split('#')[-1]
+        else:
+            return s.rstrip('/').split('/')[-1]
     else:
-        return str(term)
+        return s
 
 
 def safe_delete_configuration(key: str, configurations: Dict[str, Any]) -> None:
@@ -30,9 +34,7 @@ def safe_delete_configuration(key: str, configurations: Dict[str, Any]) -> None:
 
 class SparqlGraphWidget:
 
-    def __init__(self, wrapper=None, limit=50, data=None, layout: Optional[str] = 'organic'):
-        self.graph = None
-        self._data = data
+    def __init__(self, wrapper=None, limit=50, layout: Optional[str] = 'organic'):
         self.limit = limit
         self._subject_configurations = {}
         self._object_configurations = {}
@@ -41,31 +43,7 @@ class SparqlGraphWidget:
         self.widget = GraphWidget()
         self._wrapper = wrapper
         self._graph_layout = layout
-
-        if data:
-            self.graph = Graph().parse(data)
-
-    def _fetch_data_from_sparql(self, query):
-
-        self._wrapper.setQuery(query)
-
-        try:
-            results = self._wrapper.query()
-            results = results.convert()
-            try:
-                self.graph = Graph().parse(results)
-            finally:
-                return results
-
-        except Exception as e:
-            raise Exception(f"{e}")
-
-    def set_data(self, data):
-        self.graph = Graph().parse(data)
-        self._data = data
-
-    def get_data(self):
-        return self._data
+        self.graph = None
 
     def set_limit(self, limit):
         self.limit = limit
@@ -98,15 +76,35 @@ class SparqlGraphWidget:
 
         return query
 
+    def _query(self, query):
+        if self._wrapper:
+            wrapper = self._wrapper
+            wrapper.setQuery(query)
+            ret = wrapper.queryAndConvert()
+            # SELECT query
+            if "results" in ret and "bindings" in ret["results"]:
+                triples = []
+                for row in ret["results"]["bindings"]:
+                    s = row["s"]["value"] if "s" in row else None
+                    p = row["p"]["value"] if "p" in row else None
+                    o = row["o"]["value"] if "o" in row else None
+
+                    if s and p and o:
+                        triples.append((s, p, o))
+
+                self._lastQueryResult = triples
+
+                return triples
+
+            return ret  #.serialize()
+
     def show_query(self, query, layout=None):
 
-        if self._wrapper is None and self._data is None:
-            raise Exception('Either specify data or a SPARQLWrapper')
+        if self._wrapper is None:
+            raise Exception('specify a SPARQLWrapper')
+
         query = self._limit_query(query)
-        if self._data is None:
-            res = self._fetch_data_from_sparql(query)
-        else:
-            res = self.graph.query(query)
+        res = self._query(query)
         try:
             widget = self._create_graph(res)
             if layout:
@@ -118,10 +116,6 @@ class SparqlGraphWidget:
             raise Exception('This widget can only visualize Select, Describe and Construct queries')
 
         widget.show()
-
-    def update_graph(self, updated_query):
-
-        self.graph.update(updated_query)
 
     def _create_graph(self, triples):
 
@@ -284,27 +278,13 @@ class SparqlGraphWidget:
         affected_subjects = {}
         affected_objects = {}
         for predicate in self._object_configurations:
-            query = f"""
-                            SELECT ?object
-                            WHERE {{
-                                    ?subject :{predicate} ?object .
-                            }}
-                            LIMIT {self.limit}
-                        """
-            result = self.graph.query(query)
-            for row in result:
-                affected_objects[extract_label(row[0], False)] = predicate
+            for row in self._lastQueryResult:
+                if predicate in str(row[1]):
+                    affected_objects[extract_label(row[2], False)] = predicate
         for predicate in self._subject_configurations:
-            query = f"""
-                            SELECT ?subject
-                            WHERE {{
-                                    ?subject :{predicate} ?object .
-                            }}
-                            LIMIT {self.limit}
-                        """
-            result = self.graph.query(query)
-            for row in result:
-                affected_subjects[extract_label(row[0], False)] = predicate
+            for row in self._lastQueryResult:
+                if predicate in str(row[1]):
+                    affected_subjects[extract_label(row[0], False)] = predicate
 
         for key in POSSIBLE_NODE_BINDINGS:
             default_mapping = getattr(widget, f"default_node_{key}_mapping")
@@ -430,50 +410,54 @@ class SparqlGraphWidget:
 
     # noinspection PyUnboundLocalVariable
     def show_schema(self):
-        g = self.graph
 
-        if g is None:
+        if self._wrapper is None:
             raise Exception("No data was given to infer schema")
 
-        classes = g.query(f"""
-            SELECT DISTINCT ?class
+        c = f"""
+            SELECT DISTINCT ?s ?p ?o
             WHERE {{
-                ?class rdf:type rdfs:Class .
+                ?s rdf:type rdfs:Class .
                 }}
             LIMIT {self.limit // 2}
-        """)
-        properties = g.query(f"""
-            SELECT DISTINCT ?property ?domain ?range
+        """
+        classes = self._query(c)
+
+        p = f"""
+            SELECT DISTINCT ?s ?p ?o
             WHERE {{
-                ?property rdf:type rdf:Property .        
+                ?s rdf:type rdf:Property .        
                 
-                OPTIONAL {{ ?property rdfs:domain ?domain . }}
+                OPTIONAL {{ ?s rdfs:domain ?p . }}
                 
-                OPTIONAL {{ ?property rdfs:range ?range . }}
+                OPTIONAL {{ ?s rdfs:range ?o . }}
                 
-                FILTER (BOUND(?domain) || BOUND(?range))
+                FILTER (BOUND(?p) || BOUND(?o))
                 }}
             LIMIT {self.limit // 2}
-        """)
-        connections = g.query(f"""
-        SELECT DISTINCT ?source_class ?property ?target_class
+        """
+        properties = self._query(p)
+
+        c = f"""
+        SELECT DISTINCT ?s ?p ?o
         WHERE {{
             {{
-                ?s ?property ?o .
-                ?s rdf:type ?source_class .
-                ?o rdf:type ?target_class .
+                ?s ?p ?o .
+                ?s rdf:type ?s .
+                ?o rdf:type ?o .
             }}
             UNION
             {{
-                ?property rdf:type rdf:Property .
+                ?p rdf:type rdf:Property .
         
-            OPTIONAL {{ ?property rdfs:domain ?source_class . }}
-            OPTIONAL {{ ?property rdfs:range ?target_class . }}
+            OPTIONAL {{ ?p rdfs:domain ?s . }}
+            OPTIONAL {{ ?p rdfs:range ?o . }}
             
-            FILTER (BOUND(?source_class) && BOUND(?target_class))
+            FILTER (BOUND(?s) && BOUND(?o))
             }}
         }}
-        """)
+        """
+        connections = self._query(c)
 
         def add_node(label):
             label = extract_label(label, False)
@@ -602,27 +586,31 @@ class SparqlGraphWidget:
         for predicate in self._object_configurations:
             if key in self._object_configurations.get(predicate):
                 query = f"""
-                        SELECT ?object
+                        SELECT ?s ?p ?o
                         WHERE {{
-                            ?subject :{predicate} ?object .
+                            ?s ?p ?o .
+                            FILTER(CONTAINS(str(?p), "{predicate}"))
                         }}
                         LIMIT {self.limit}
                 """
-                result = self.graph.query(query)
-                for row in result:
-                    affected_objects[extract_label(row[0], False)] = predicate
+                #result = self._query(query)
+                for row in self._lastQueryResult:
+                    if predicate in str(row[1]):
+                        affected_objects[extract_label(row[2], False)] = predicate
         for predicate in self._subject_configurations:
             if key in self._subject_configurations.get(predicate):
                 query = f"""
-                                            SELECT ?subject
+                                            SELECT ?s ?p ?o
                                             WHERE {{
-                                                    ?subject :{predicate} ?object .
+                                                ?s ?p ?o .
+                                                FILTER(CONTAINS(str(?p), "{predicate}"))
                                             }}
                                             LIMIT {self.limit}
                                         """
-                result = self.graph.query(query)
-                for row in result:
-                    affected_subjects[extract_label(row[0], False)] = predicate
+                #result = self._query(query)
+                for row in self._lastQueryResult:
+                    if predicate in str(row[1]):
+                        affected_subjects[extract_label(row[0], False)] = predicate
 
         for node in widget.nodes:
             label = node['properties']['label']
