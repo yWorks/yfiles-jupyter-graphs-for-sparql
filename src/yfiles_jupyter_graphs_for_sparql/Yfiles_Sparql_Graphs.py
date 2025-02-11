@@ -2,6 +2,7 @@ import inspect
 import re
 from typing import Union, Dict, Any, Optional
 
+from SPARQLWrapper import JSON
 from yfiles_jupyter_graphs import GraphWidget
 from rdflib import Literal
 
@@ -82,12 +83,13 @@ class SparqlGraphWidget:
             wrapper.setQuery(query)
             ret = wrapper.queryAndConvert()
             # SELECT query
-            if "results" in ret and "bindings" in ret["results"]:
+            if wrapper.getReturnFormat() == JSON and "results" in ret and "bindings" in ret["results"]:
                 triples = []
                 for row in ret["results"]["bindings"]:
-                    s = row["s"]["value"] if "s" in row else None
-                    p = row["p"]["value"] if "p" in row else None
-                    o = row["o"]["value"] if "o" in row else None
+                    print(row)
+                    s = next((row[key]["value"] for key in row if key.startswith('s')), None)
+                    p = next((row[key]["value"] for key in row if key.startswith('p')), None)
+                    o = next((row[key]["value"] for key in row if key.startswith('o')), None)
 
                     if s and p and o:
                         triples.append((s, p, o))
@@ -95,6 +97,7 @@ class SparqlGraphWidget:
                 self._lastQueryResult = triples
 
                 return triples
+            # DESCRIBE, CONSTRUCT query
 
             return ret  #.serialize()
 
@@ -154,7 +157,6 @@ class SparqlGraphWidget:
                     nodes.append(node)
                 else:
                     nodes.append({'id': s_label, 'properties': {'label': s_extracted_label, 'full_label': s_label}})
-                existing_nodes.append(s_label)
             elif literal:
                 index = find_element_by_label(nodes, s_label)
                 nodes[index]['properties'][p_extracted_label] = o_extracted_label
@@ -164,7 +166,6 @@ class SparqlGraphWidget:
                 if o_label not in existing_nodes:
                     existing_nodes.append(o_label)
                     nodes.append({'id': o_label, 'properties': {'label': o_extracted_label, 'full_label': o_label}})
-                    existing_nodes.append(o_label)
 
                 edges.append({'id': p_extracted_label, 'start': s_label, 'end': o_label,
                               'properties': {'label': p_extracted_label, 'full_label': p_label}})
@@ -456,6 +457,7 @@ class SparqlGraphWidget:
             FILTER (BOUND(?s) && BOUND(?o))
             }}
         }}
+        LIMIT {self.limit}
         """
         connections = self._query(c)
 
