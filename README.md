@@ -212,8 +212,6 @@ See [issues](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/issues).
 ## Dependencies
 
 * [yFiles Graphs for Jupyter](https://github.com/yWorks/yfiles-jupyter-graphs)
-* [rdfLib](https://rdflib.readthedocs.io/en/stable/)
-* [SPARQLWrapper](https://sparqlwrapper.readthedocs.io/)
 
 ## License
 See [LICENSE](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/LICENSE.md) file.
