@@ -649,14 +649,14 @@ class SparqlGraphWidget:
                 return str(lowercase_element_props[key])
         return None
 
-    def set_node_styling(self, mapping):
+    def set_node_styles_mapping(self, mapping):
         self._node_styling = mapping
 
-    def get_node_styling(self):
+    def get_node_styles_mapping(self):
         return self._node_styling
 
-    def set_edge_styling(self, mapping):
+    def set_edge_styles_mapping(self, mapping):
         self._edge_styling = mapping
 
-    def get_edge_styling(self):
+    def get_edge_styles_mapping(self):
         return self._edge_styling

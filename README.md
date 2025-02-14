@@ -131,8 +131,8 @@ functions:
 
 Alternatively, change the `node_styling` and `edge_styling`. They're passed to the core widget's `node_styles_mapping` and `edge_styles_mapping`
 
-- `set_node_styling(mapping: Dict[str, Any] -> Dict[str, Any])`
-- `set_edge_styling(mapping: Dict[str, Any] -> Dict[str, Any])`
+- `set_node_styles_mapping(mapping: Dict[str, Any] -> Dict[str, Any])`
+- `set_edge_styles_mapping(mapping: Dict[str, Any] -> Dict[str, Any])`
 For a detailed documentation  look at the [core widget](https://github.com/yWorks/yfiles-jupyter-graphs)
 
 To remove a configuration use the following functions: 
