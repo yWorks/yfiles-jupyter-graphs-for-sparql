@@ -1,4 +1,4 @@
-# yFiles-Jupyter Graphs For SPARQL
+# yFiles Jupyter Graphs for SPARQL
 
 ![A screenshot showing the yFiles graph widget for sparql in a jupyter lab notebook](https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-sparql/main/images/Getting_started_screenshot.png)
 
@@ -8,14 +8,16 @@ This packages provides an easy-to-use interface to
 the [yFiles Graphs for Jupyter](https://github.com/yWorks/yfiles-jupyter-graphs) widget to directly visualize queries.
 
 ## Installation
-
+Just install it from the [Python Package Index](https://pypi.org/project/yfiles-jupyter-graphs-for-sparql/)
 ```bash
 pip install yfiles_jupyter_graphs_for_sparql==0.9.0rc1
 ```
+or see [README_DEV.md](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/README_DEV.md) to build it yourself.
 
 ## Usage
 
 ```python
+from SPARQLWrapper import SPARQLWrapper
 from yfiles_jupyter_graphs_for_sparql import SparqlGraphWidget
 
 g = SparqlGraphWidget(wrapper=SPARQLWrapper("http://dbpedia.org/sparql"))
@@ -211,6 +213,7 @@ See [issues](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/issues).
 
 * [yFiles Graphs for Jupyter](https://github.com/yWorks/yfiles-jupyter-graphs)
 * [rdfLib](https://rdflib.readthedocs.io/en/stable/)
+* [SPARQLWrapper](https://sparqlwrapper.readthedocs.io/)
 
 ## License
 See [LICENSE](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/LICENSE.md) file.

@@ -1,16 +1,27 @@
 import inspect
 import re
 from typing import Union, Dict, Any, Optional
+from importlib import import_module
 
-from SPARQLWrapper import JSON
 from yfiles_jupyter_graphs import GraphWidget
-from rdflib import Literal
 
 POSSIBLE_NODE_BINDINGS = {'coordinate', 'color', 'size', 'type', 'styles', 'scale_factor', 'position',
                           'layout', 'property', 'label'}
 POSSIBLE_EDGE_BINDINGS = {'color', 'thickness_factor', 'property', 'label'}
 SPARQL_LABEL_KEYS = ['name', 'title', 'text', 'description', 'caption', 'label']
 
+def _try_import(module_name: str, graph_type_name: str):
+    try:
+        module = import_module(module_name)
+        try:
+            return module.__getattribute__(graph_type_name)
+        except AttributeError:
+            return None
+    except ImportError:
+        return None
+
+SPARQLWrapper_JSON = _try_import('SPARQLWrapper', 'JSON')
+rdflib_Literal = _try_import('rdflib', 'Literal')
 
 def extract_label(term, edge):
     """
@@ -85,7 +96,7 @@ class SparqlGraphWidget:
             wrapper.setQuery(query)
             ret = wrapper.queryAndConvert()
             # SELECT query
-            if wrapper.returnFormat == JSON and "results" in ret and "bindings" in ret["results"]:
+            if wrapper.returnFormat == SPARQLWrapper_JSON and "results" in ret and "bindings" in ret["results"]:
                 triples = []
                 for row in ret["results"]["bindings"]:
                     s = next((row[key]["value"] for key in row if key.startswith('s')), None)
@@ -145,7 +156,7 @@ class SparqlGraphWidget:
 
             o_label = str(o)
             o_extracted_label = extract_label(o, False)
-            literal = isinstance(o, Literal)
+            literal = isinstance(o, rdflib_Literal)
 
             p_label = str(p)
             p_extracted_label = extract_label(p, True)
@@ -421,9 +432,9 @@ class SparqlGraphWidget:
 
         if self._wrapper is None:
             raise Exception("No data was given to infer schema")
-        elif self._wrapper.returnFormat != JSON:
+        elif self._wrapper.returnFormat != SPARQLWrapper_JSON:
             return_format = self._wrapper.returnFormat
-            self._wrapper.setReturnFormat(JSON)
+            self._wrapper.setReturnFormat(SPARQLWrapper_JSON)
 
         c = f"""
             SELECT DISTINCT ?s ?p ?o
