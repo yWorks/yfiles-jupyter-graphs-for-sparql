@@ -85,15 +85,14 @@ class SparqlGraphWidget:
             wrapper.setQuery(query)
             ret = wrapper.queryAndConvert()
             # SELECT query
-            if wrapper.getReturnFormat() == JSON and "results" in ret and "bindings" in ret["results"]:
+            if wrapper.returnFormat == JSON and "results" in ret and "bindings" in ret["results"]:
                 triples = []
                 for row in ret["results"]["bindings"]:
-                    print(row)
                     s = next((row[key]["value"] for key in row if key.startswith('s')), None)
                     p = next((row[key]["value"] for key in row if key.startswith('p')), None)
                     o = next((row[key]["value"] for key in row if key.startswith('o')), None)
 
-                    if s and p and o:
+                    if s or p or o:
                         triples.append((s, p, o))
 
                 self._lastQueryResult = triples
@@ -290,7 +289,7 @@ class SparqlGraphWidget:
                     affected_subjects[extract_label(row[0], False)] = predicate
 
         for key in POSSIBLE_NODE_BINDINGS:
-            if self._node_styling is not None:
+            if self._node_styling is not None and key == 'styles':
                 default_mapping = self._node_styling
             else:
                 default_mapping = getattr(widget, f"default_node_{key}_mapping")
@@ -308,7 +307,7 @@ class SparqlGraphWidget:
             edge_predicates.append(predicate)
 
         for key in POSSIBLE_EDGE_BINDINGS:
-            if self._edge_styling is not None:
+            if self._edge_styling is not None and key == 'styles':
                 default_mapping = self._edge_styling
             else:
                 default_mapping = getattr(widget, f"default_edge_{key}_mapping")
@@ -422,6 +421,9 @@ class SparqlGraphWidget:
 
         if self._wrapper is None:
             raise Exception("No data was given to infer schema")
+        elif self._wrapper.returnFormat != JSON:
+            return_format = self._wrapper.returnFormat
+            self._wrapper.setReturnFormat(JSON)
 
         c = f"""
             SELECT DISTINCT ?s ?p ?o
@@ -525,6 +527,8 @@ class SparqlGraphWidget:
         widget.nodes = nodes
         widget.edges = edges
         widget.hierarchic_layout()
+        if return_format:
+            self._wrapper.setReturnFormat(return_format)
         widget.show()
 
     def add_parent_configuration(self, predicate: Union[str, list[str]], reverse: Optional[bool] = False) -> None:

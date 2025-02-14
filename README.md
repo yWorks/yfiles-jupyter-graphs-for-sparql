@@ -10,7 +10,7 @@ the [yFiles Graphs for Jupyter](https://github.com/yWorks/yfiles-jupyter-graphs)
 ## Installation
 
 ```bash
-pip install yfiles_jupyter_graphs_for_sparql
+pip install yfiles_jupyter_graphs_for_sparql==0.9.0rc1
 ```
 
 ## Usage
@@ -18,7 +18,7 @@ pip install yfiles_jupyter_graphs_for_sparql
 ```python
 from yfiles_jupyter_graphs_for_sparql import SparqlGraphWidget
 
-g = SparqlGraphWidget(data="https://ld.cultural.jp/sparql")
+g = SparqlGraphWidget(wrapper=SPARQLWrapper("http://dbpedia.org/sparql"))
 
 q = """
     SELECT ?sub ?p ?ob
@@ -47,7 +47,6 @@ The main class `SparqlGraphWidget` provides the following API:
 
 | Argument  | Description                                                                                                                                                                                                                                        | Default  |
 |-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
-| `data`    | The data endpoint the queries are sent to                                                                                                                                                                                                          | `None`   |
 | `limit`   | The node limit which is added to all queries                                                                                                                                                                                                       | `50`     |
 | `wrapper` | A SPARQL wrapper, that is used to send queries to                                                                                                                                                                                                  | `None`   |
 | `layout`  | Can be used to specify a general default node and edge layout. Available algorithms are: "circular", "hierarchic", "organic", "interactive_organic_layout", "orthogonal", "radial", "tree", "map", "orthogonal_edge_router", "organic_edge_router" | `organic` |
@@ -130,10 +129,16 @@ functions:
     - `type`: The predicate type that should be visualized as node grouping hierarchy instead of the actual relationship.
     - `reverse`: By default the target node is considered as parent. This can be reverted with this argument.
 
+Alternatively, change the `node_styling` and `edge_styling`. They're passed to the core widget's `node_styles_mapping` and `edge_styles_mapping`
+
+- `set_node_styling(mapping: Dict[str, Any] -> Dict[str, Any])`
+- `set_edge_styling(mapping: Dict[str, Any] -> Dict[str, Any])`
+For a detailed documentation  look at the [core widget](https://github.com/yWorks/yfiles-jupyter-graphs)
+
 To remove a configuration use the following functions: 
 
 - `del_object_configuration(type)`: Deletes configuration for the given object predicate type.
-- `del_subject_configuration(type)`: Deletes configuration for the given subject predicatetype.
+- `del_subject_configuration(type)`: Deletes configuration for the given subject predicate type.
 - `del_edge_configurations(type)`: Deletes configuration for the given predicate type.
 - `del_parent_predicate_configuration(type: Union[str, list[str]]) -> None`: Deletes configuration for the given parent predicate type(s).
 
