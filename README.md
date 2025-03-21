@@ -184,6 +184,8 @@ the [example notebooks](https://github.com/yWorks/yfiles-jupyter-graphs/blob/mai
     <tr>
         <td><a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb"><img src="https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-sparql/refs/heads/main/images/groupingNodes.png" title="Group Nodes" alt="Nesting visualization"></a>
         <a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb">Grouping visualization</a><br><a target="_blank" href="https://colab.research.google.com/github/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></td>
+        <td><a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb"><img src="https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-sparql/refs/heads/main/images/heatAndParent.png" title="Heat" alt="Heat Mapping"></a>
+        <a href="https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb">Heat Mapping</a><br><a target="_blank" href="https://colab.research.google.com/github/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></td>
     </tr>
 </table>
 
