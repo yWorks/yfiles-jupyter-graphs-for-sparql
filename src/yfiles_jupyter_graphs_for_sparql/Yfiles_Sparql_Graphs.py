@@ -59,8 +59,6 @@ class SparqlGraphWidget:
         self._wrapper = wrapper
         self._graph_layout = layout
         self.graph = None
-        self._node_styling = None
-        self._edge_styling = None
 
     def set_limit(self, limit):
         self.limit = limit
@@ -337,9 +335,9 @@ class SparqlGraphWidget:
             elif label in affected_subjects:
                 configurations = self._subject_configurations
                 predicate = affected_subjects[label]
-            elif label in edge_predicate:
+            elif label in edge_predicate or '*' in self._edge_configurations:
                 configurations = self._edge_configurations
-                predicate = label
+                predicate = label if label in edge_predicate else '*'
 
             if predicate in configurations and binding_key in configurations[predicate]:  # or '*' in configurations
                 if binding_key == 'parent_configuration':

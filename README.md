@@ -102,7 +102,7 @@ functions:
           which affects the automatic positioning of nodes (same "type"s are preferred to be placed next to each other).
         - `parent_configuration`: Configure grouping for this node label. See [configurations_example.ipynb](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb)
           for examples.
-        - `heat`: A heat value in between 0 and 1
+        - `heat`: A heat value in between 0 and 1.
 
 - `add_object_configuration(predicate:  Union[str, list[str]], **kwargs: Dict[str, Any])`
     - `predicate`: The predicate of the object this configuration should be used for.
@@ -118,16 +118,16 @@ functions:
           which affects the automatic positioning of nodes (same "type"s are preferred to be placed next to each other).
         - `parent_configuration`: Configure grouping for this node label. See [configurations_example.ipynb](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb)
           for examples.
-        - `heat`: A heat value in between 0 and 1
+        - `heat`: A heat value in between 0 and 1.
 
 - `add_predicate_configuration(type:  Union[str, list[str]], **kwargs: Dict[str, Any])`
-    - `type`: The predicate type for which this configuration should be used.
+    - `type`: The predicate type(s) for which this configuration should be used. Supports `*` to address all types.
     - `**kwargs`: Visualization configuration for the given predicate type. The following arguments are supported:
         - `text`: The text that displayed at the edge. By default, the predicate's type is used.
         - `color`: The edge's color.
         - `thickness_factor`: The edge's stroke thickness factor. By default, `1`.
         - `property`: Allows to specify additional properties on the edge, which may be bound by other bindings.
-        - `heat`: A heat value in between 0 and 1
+        - `heat`: A heat value in between 0 and 1.
       
 
 - `add_parent_relationship_configuration(type: Union[str, list[str]], reverse: Optional[bool] = False) -> None`
