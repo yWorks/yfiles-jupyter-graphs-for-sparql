@@ -7,8 +7,9 @@ from yfiles_jupyter_graphs import GraphWidget
 
 POSSIBLE_NODE_BINDINGS = {'coordinate', 'color', 'size', 'type', 'styles', 'scale_factor', 'position',
                           'layout', 'property', 'label'}
-POSSIBLE_EDGE_BINDINGS = {'color', 'thickness_factor', 'property', 'label'}
+POSSIBLE_EDGE_BINDINGS = {'color', 'thickness_factor', 'property', 'label', 'styles'}
 SPARQL_LABEL_KEYS = ['name', 'title', 'text', 'description', 'caption', 'label']
+
 
 def _try_import(module_name: str, graph_type_name: str):
     try:
@@ -20,8 +21,10 @@ def _try_import(module_name: str, graph_type_name: str):
     except ImportError:
         return None
 
+
 SPARQLWrapper_JSON = _try_import('SPARQLWrapper', 'JSON')
 rdflib_Literal = _try_import('rdflib', 'Literal')
+
 
 def extract_label(term, edge):
     """
@@ -300,10 +303,7 @@ class SparqlGraphWidget:
                     affected_subjects[extract_label(row[0], False)] = predicate
 
         for key in POSSIBLE_NODE_BINDINGS:
-            if self._node_styling is not None and key == 'styles':
-                default_mapping = self._node_styling
-            else:
-                default_mapping = getattr(widget, f"default_node_{key}_mapping")
+            default_mapping = getattr(widget, f"default_node_{key}_mapping")
             setattr(widget, f"_node_{key}_mapping",
                     self.__configuration_mapper_factory('', key, affected_subjects,
                                                         affected_objects, default_mapping))
@@ -312,16 +312,15 @@ class SparqlGraphWidget:
                 self.__configuration_mapper_factory('', 'parent_configuration', affected_subjects, affected_objects,
                                                     lambda node: None))
 
+        self.apply_heat_mapping(affected_subjects, affected_objects, widget)
+
     def __apply_edge_mappings(self, widget):
         edge_predicates = []
         for predicate in self._edge_configurations:
             edge_predicates.append(predicate)
 
         for key in POSSIBLE_EDGE_BINDINGS:
-            if self._edge_styling is not None and key == 'styles':
-                default_mapping = self._edge_styling
-            else:
-                default_mapping = getattr(widget, f"default_edge_{key}_mapping")
+            default_mapping = getattr(widget, f"default_edge_{key}_mapping")
             setattr(widget, f"_edge_{key}_mapping",
                     self.__configuration_mapper_factory(edge_predicates, key, {}, {},
                                                         default_mapping))
@@ -660,14 +659,10 @@ class SparqlGraphWidget:
                 return str(lowercase_element_props[key])
         return None
 
-    def set_node_styles_mapping(self, mapping):
-        self._node_styling = mapping
-
-    def get_node_styles_mapping(self):
-        return self._node_styling
-
-    def set_edge_styles_mapping(self, mapping):
-        self._edge_styling = mapping
-
-    def get_edge_styles_mapping(self):
-        return self._edge_styling
+    def apply_heat_mapping(self, subjects, objects, widget):
+        edge_predicates = []
+        for predicate in self._edge_configurations:
+            edge_predicates.append(predicate)
+        setattr(widget, "_heat_mapping",
+                self.__configuration_mapper_factory(edge_predicates, 'heat', subjects, objects,
+                                                    getattr(widget, 'default_heat_mapping')))

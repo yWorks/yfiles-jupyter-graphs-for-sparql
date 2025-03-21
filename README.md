@@ -102,6 +102,7 @@ functions:
           which affects the automatic positioning of nodes (same "type"s are preferred to be placed next to each other).
         - `parent_configuration`: Configure grouping for this node label. See [configurations_example.ipynb](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb)
           for examples.
+        - `heat`: A heat value in between 0 and 1
 
 - `add_object_configuration(predicate:  Union[str, list[str]], **kwargs: Dict[str, Any])`
     - `predicate`: The predicate of the object this configuration should be used for.
@@ -117,6 +118,7 @@ functions:
           which affects the automatic positioning of nodes (same "type"s are preferred to be placed next to each other).
         - `parent_configuration`: Configure grouping for this node label. See [configurations_example.ipynb](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/examples/configurations_example.ipynb)
           for examples.
+        - `heat`: A heat value in between 0 and 1
 
 - `add_predicate_configuration(type:  Union[str, list[str]], **kwargs: Dict[str, Any])`
     - `type`: The predicate type for which this configuration should be used.
@@ -125,16 +127,13 @@ functions:
         - `color`: The edge's color.
         - `thickness_factor`: The edge's stroke thickness factor. By default, `1`.
         - `property`: Allows to specify additional properties on the edge, which may be bound by other bindings.
+        - `heat`: A heat value in between 0 and 1
       
 
 - `add_parent_relationship_configuration(type: Union[str, list[str]], reverse: Optional[bool] = False) -> None`
     - `type`: The predicate type that should be visualized as node grouping hierarchy instead of the actual relationship.
     - `reverse`: By default the target node is considered as parent. This can be reverted with this argument.
 
-Alternatively, change the `node_styling` and `edge_styling`. They're passed to the core widget's `node_styles_mapping` and `edge_styles_mapping`
-
-- `set_node_styles_mapping(mapping: Dict[str, Any] -> Dict[str, Any])`
-- `set_edge_styles_mapping(mapping: Dict[str, Any] -> Dict[str, Any])`
 For a detailed documentation  look at the [core widget](https://github.com/yWorks/yfiles-jupyter-graphs)
 
 To remove a configuration use the following functions: 
