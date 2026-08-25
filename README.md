@@ -39,6 +39,16 @@ See
 The widget uses yFiles Graphs for Jupyter at its core, and therefore runs in any environment that is supported by it,
 see [supported environments](https://github.com/yWorks/yfiles-jupyter-graphs/tree/main?tab=readme-ov-file#supported-environments).
 
+## AI Coding Assistant
+
+Working with an AI coding agent? Our [agent guide](agent-guide.md) contains instructions and best practices for coding agents working with this SPARQL widget.
+
+**Example start prompt:**
+```text
+Read the instructions at https://raw.githubusercontent.com/yWorks/yfiles-jupyter-graphs-for-sparql/refs/heads/main/agent-guide.md.
+Then, create a Jupyter notebook that connects to a SPARQL endpoint and visualizes an insightful subset of the RDF graph using `yfiles_jupyter_graphs_for_sparql`.
+```
+
 ## Documentation
 
 The main class `SparqlGraphWidget` provides the following API:
