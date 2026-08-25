@@ -4,10 +4,10 @@ from importlib import import_module
 
 from yfiles_jupyter_graphs import GraphWidget
 
-POSSIBLE_NODE_BINDINGS = {'coordinate', 'color', 'size', 'type', 'styles', 'scale_factor', 'position',
-                          'layout', 'property', 'label'}
-POSSIBLE_EDGE_BINDINGS = {'color', 'thickness_factor', 'property', 'label', 'styles'}
-SPARQL_LABEL_KEYS = ['name', 'title', 'text', 'description', 'caption', 'label']
+POSSIBLE_NODE_BINDINGS = {"coordinate", "color", "size", "type", "styles", "scale_factor", "position",
+                          "layout", "property", "label"}
+POSSIBLE_EDGE_BINDINGS = {"color", "thickness_factor", "property", "label", "styles"}
+SPARQL_LABEL_KEYS = ["name", "title", "text", "description", "caption", "label"]
 
 
 def _try_import(module_name: str, graph_type_name: str):
@@ -21,8 +21,8 @@ def _try_import(module_name: str, graph_type_name: str):
         return None
 
 
-SPARQLWrapper_JSON = _try_import('SPARQLWrapper', 'JSON')
-rdflib_Literal = _try_import('rdflib', 'Literal')
+SPARQLWrapper_JSON = _try_import("SPARQLWrapper", "JSON")
+rdflib_Literal = _try_import("rdflib", "Literal")
 
 
 def extract_label(term, edge):
@@ -31,10 +31,10 @@ def extract_label(term, edge):
     """
     s = str(term)
     if edge or s.startswith("http://") or s.startswith("https://"):
-        if '#' in s:
-            return s.split('#')[-1]
+        if "#" in s:
+            return s.split("#")[-1]
         else:
-            return s.rstrip('/').split('/')[-1]
+            return s.rstrip("/").split("/")[-1]
     else:
         return s
 
@@ -48,7 +48,7 @@ def safe_delete_configuration(key: str, configurations: Dict[str, Any]) -> None:
 
 class SparqlGraphWidget:
 
-    def __init__(self, wrapper=None, limit=50, layout: Optional[str] = 'organic'):
+    def __init__(self, wrapper=None, limit=50, layout: Optional[str] = "organic"):
         self.limit = limit
         self._subject_configurations = {}
         self._object_configurations = {}
@@ -99,9 +99,9 @@ class SparqlGraphWidget:
             if wrapper.returnFormat == SPARQLWrapper_JSON and "results" in ret and "bindings" in ret["results"]:
                 triples = []
                 for row in ret["results"]["bindings"]:
-                    s = next((row[key]["value"] for key in row if key.startswith('s')), None)
-                    p = next((row[key]["value"] for key in row if key.startswith('p')), None)
-                    o = next((row[key]["value"] for key in row if key.startswith('o')), None)
+                    s = next((row[key]["value"] for key in row if key.startswith("s")), None)
+                    p = next((row[key]["value"] for key in row if key.startswith("p")), None)
+                    o = next((row[key]["value"] for key in row if key.startswith("o")), None)
 
                     if s or p or o:
                         triples.append((s, p, o))
@@ -116,7 +116,7 @@ class SparqlGraphWidget:
     def show_query(self, query, layout=None):
 
         if self._wrapper is None:
-            raise Exception('specify a SPARQLWrapper')
+            raise Exception("specify a SPARQLWrapper")
 
         query = self._limit_query(query)
         res = self._query(query)
@@ -128,7 +128,7 @@ class SparqlGraphWidget:
                 widget.graph_layout = self._graph_layout
             self.widget = widget
         except TypeError:
-            raise Exception('This widget can only visualize Select, Describe and Construct queries')
+            raise Exception("This widget can only visualize Select, Describe and Construct queries")
 
         widget.show()
 
@@ -137,7 +137,7 @@ class SparqlGraphWidget:
         def find_element_by_label(array, label):
             i = 0
             for element in array:
-                if element['id'] == label:
+                if element["id"] == label:
                     return i
                 i += 1
             return None
@@ -164,23 +164,23 @@ class SparqlGraphWidget:
             if s_label not in existing_nodes:
                 existing_nodes.append(s_label)
                 if literal:
-                    node = {'id': s_label, 'properties': {'label': s_extracted_label, 'full_label': s_label}}
-                    node['properties'][p_extracted_label] = o_extracted_label
+                    node = {"id": s_label, "properties": {"label": s_extracted_label, "full_label": s_label}}
+                    node["properties"][p_extracted_label] = o_extracted_label
                     nodes.append(node)
                 else:
-                    nodes.append({'id': s_label, 'properties': {'label': s_extracted_label, 'full_label': s_label}})
+                    nodes.append({"id": s_label, "properties": {"label": s_extracted_label, "full_label": s_label}})
             elif literal:
                 index = find_element_by_label(nodes, s_label)
-                nodes[index]['properties'][p_extracted_label] = o_extracted_label
+                nodes[index]["properties"][p_extracted_label] = o_extracted_label
 
             if not literal:
 
                 if o_label not in existing_nodes:
                     existing_nodes.append(o_label)
-                    nodes.append({'id': o_label, 'properties': {'label': o_extracted_label, 'full_label': o_label}})
+                    nodes.append({"id": o_label, "properties": {"label": o_extracted_label, "full_label": o_label}})
 
-                edges.append({'id': p_extracted_label, 'start': s_label, 'end': o_label,
-                              'properties': {'label': p_extracted_label, 'full_label': p_label}})
+                edges.append({"id": p_extracted_label, "start": s_label, "end": o_label,
+                              "properties": {"label": p_extracted_label, "full_label": p_label}})
 
         widget.nodes = nodes
         widget.edges = edges
@@ -232,7 +232,7 @@ class SparqlGraphWidget:
                 - `text` (Union[str, Callable]): The text to be displayed on the node. By default, the node's label is used.
                 - `color` (Union[str, Callable]): A convenience color binding for the node (see also styles kwarg).
                 - `size` (Union[str, Callable]): The size of the node.
-                - `styles` (Union[Dict, Callable]): A dictionary that may contain the following attributes color, shape (one of 'ellipse', ' hexagon', 'hexagon2', 'octagon', 'pill', 'rectangle', 'round-rectangle' or 'triangle'), image.
+                - `styles` (Union[Dict, Callable]): A dictionary that may contain the following attributes color, shape (one of "ellipse", " hexagon", "hexagon2", "octagon", "pill", "rectangle", "round-rectangle" or "triangle"), image.
                 - `property` (Union[Dict, Callable]): Allows to specify additional properties on the node, which may be bound by other bindings.
                 - `type` (Union[Dict, Callable]): Defines a specific "type" for the node which affects the automatic positioning of nodes (same "type"s are preferred to be placed next to each other).
                 - `parent_configuration` (Union[str, Callable]): Configure grouping for this node label.
@@ -265,7 +265,7 @@ class SparqlGraphWidget:
                 - `text` (Union[str, Callable]): The text to be displayed on the node. By default, the node's label is used.
                 - `color` (Union[str, Callable]): A convenience color binding for the node (see also styles kwarg).
                 - `size` (Union[str, Callable]): The size of the node.
-                - `styles` (Union[Dict, Callable]): A dictionary that may contain the following attributes color, shape (one of 'ellipse', ' hexagon', 'hexagon2', 'octagon', 'pill', 'rectangle', 'round-rectangle' or 'triangle'), image.
+                - `styles` (Union[Dict, Callable]): A dictionary that may contain the following attributes color, shape (one of "ellipse", " hexagon", "hexagon2", "octagon", "pill", "rectangle", "round-rectangle" or "triangle"), image.
                 - `property` (Union[Dict, Callable]): Allows to specify additional properties on the node, which may be bound by other bindings.
                 - `type` (Union[Dict, Callable]): Defines a specific "type" for the node which affects the automatic positioning of nodes (same "type"s are preferred to be placed next to each other).
                 - `parent_configuration` (Union[str, Callable]): Configure grouping for this node label.
@@ -301,10 +301,10 @@ class SparqlGraphWidget:
 
         for key in POSSIBLE_NODE_BINDINGS:
             setattr(widget, f"node_{key}_mapping",
-                    self.__configuration_mapper_factory('', key, affected_subjects, affected_objects))
+                    self.__configuration_mapper_factory("", key, affected_subjects, affected_objects))
 
         setattr(widget, "node_parent_mapping",
-                self.__configuration_mapper_factory('', 'parent_configuration', affected_subjects, affected_objects))
+                self.__configuration_mapper_factory("", "parent_configuration", affected_subjects, affected_objects))
 
         self.apply_heat_mapping(affected_subjects, affected_objects, widget)
 
@@ -333,7 +333,7 @@ class SparqlGraphWidget:
 
         def mapping(index, item: Dict):
             configurations = {}
-            predicate = ''
+            predicate = ""
             label = item["properties"]["label"]
             if label in affected_objects:
                 configurations = self._object_configurations
@@ -341,21 +341,21 @@ class SparqlGraphWidget:
             elif label in affected_subjects:
                 configurations = self._subject_configurations
                 predicate = affected_subjects[label]
-            elif label in edge_predicate or '*' in self._edge_configurations:
+            elif label in edge_predicate or "*" in self._edge_configurations:
                 configurations = self._edge_configurations
-                predicate = label if label in edge_predicate else '*'
+                predicate = label if label in edge_predicate else "*"
 
-            if predicate in configurations and binding_key in configurations[predicate]:  # or '*' in configurations
-                if binding_key == 'parent_configuration':
+            if predicate in configurations and binding_key in configurations[predicate]:  # or "*" in configurations
+                if binding_key == "parent_configuration":
                     binding = configurations[predicate].get(binding_key)
                     if binding and callable(binding):
                         binding = binding(item)
                     # parent_configuration binding may either resolve to a dict or a string
                     if isinstance(binding, dict):
-                        group_label = binding.get('text', '')
+                        group_label = binding.get("text", "")
                     else:
                         group_label = binding
-                    result = 'GroupNode' + group_label
+                    result = "GroupNode" + group_label
                 # mapping
                 elif callable(configurations.get(predicate)[binding_key]):
                     result = configurations.get(predicate)[binding_key](item)
@@ -482,8 +482,8 @@ class SparqlGraphWidget:
 
         def add_node(label):
             label = extract_label(label, False)
-            if label and not any(node['id'] == label for node in nodes):
-                nodes.append({'id': label, 'properties': {'label': label}})
+            if label and not any(node["id"] == label for node in nodes):
+                nodes.append({"id": label, "properties": {"label": label}})
 
         nodes = []
         edges = []
@@ -505,16 +505,16 @@ class SparqlGraphWidget:
                     pass  # handled by connections
                 elif domain:
                     edges.append({
-                        'start': d_label,
-                        'end': p_label,
-                        'properties': {'label': 'domain'}
+                        "start": d_label,
+                        "end": p_label,
+                        "properties": {"label": "domain"}
                     })
                     add_node(prop)
                 elif range_:
                     edges.append({
-                        'start': p_label,
-                        'end': r_label,
-                        'properties': {'label': 'range'}
+                        "start": p_label,
+                        "end": r_label,
+                        "properties": {"label": "range"}
                     })
                     add_node(prop)
 
@@ -524,13 +524,13 @@ class SparqlGraphWidget:
             add_node(source)
             add_node(target)
             edges.append({
-                'start': s_label,
-                'end': t_label,
-                'properties': {'label': extract_label(prop, True), 'full label': prop}
+                "start": s_label,
+                "end": t_label,
+                "properties": {"label": extract_label(prop, True), "full label": prop}
             })
 
         if nodes == [] or edges == []:
-            raise Exception('no schema data found in the given graph')
+            raise Exception("no schema data found in the given graph")
         widget = GraphWidget()
         widget.directed = True
         widget.nodes = nodes
@@ -585,29 +585,29 @@ class SparqlGraphWidget:
             rel_type = edge["properties"]["label"]
             for (parent_type, is_reversed) in self._parent_configurations:
                 if rel_type == parent_type:
-                    start = edge['start']  # child node id
-                    end = edge['end']  # parent node id
+                    start = edge["start"]  # child node id
+                    end = edge["end"]  # parent node id
                     if is_reversed:
                         node_to_parent[end] = start
                     else:
                         node_to_parent[start] = end
-                    edge_ids_to_remove.add(edge['id'])
+                    edge_ids_to_remove.add(edge["id"])
                     break
 
         # use list comprehension to filter out the edges to automatically trigger model sync with the frontend
-        widget.edges = [edge for edge in widget.edges if edge['id'] not in edge_ids_to_remove]
-        current_parent_mapping = getattr(widget, 'node_parent_mapping', None)
+        widget.edges = [edge for edge in widget.edges if edge["id"] not in edge_ids_to_remove]
+        current_parent_mapping = getattr(widget, "node_parent_mapping", None)
         if current_parent_mapping is None:
             current_parent_mapping = lambda index, node: None
         setattr(widget, "node_parent_mapping",
-                lambda index, node: node_to_parent.get(node['id'], current_parent_mapping(index, node)))
+                lambda index, node: node_to_parent.get(node["id"], current_parent_mapping(index, node)))
 
     def __create_group_nodes(self, widget: GraphWidget) -> None:
         group_node_properties = set()
         group_node_values = set()
         affected_objects = {}
         affected_subjects = {}
-        key = 'parent_configuration'
+        key = "parent_configuration"
         for predicate in self._object_configurations:
             if key in self._object_configurations.get(predicate):
                 for row in self._lastQueryResult:
@@ -620,7 +620,7 @@ class SparqlGraphWidget:
                         affected_subjects[extract_label(row[0], False)] = predicate
 
         for node in widget.nodes:
-            label = node['properties']['label']
+            label = node["properties"]["label"]
 
             group_node = None
             if label in affected_subjects:
@@ -640,21 +640,21 @@ class SparqlGraphWidget:
                         group_node_values.add(group_node)
                 else:
                     # dictionary with values
-                    text = group_node.get('text', '')
+                    text = group_node.get("text", "")
                     group_node_values.add(text)
-                    configuration = {k: v for k, v in group_node.items() if k != 'text'}
+                    configuration = {k: v for k, v in group_node.items() if k != "text"}
                     if label in affected_objects:
                         self.add_object_configuration(text, **configuration)
                     if label in affected_subjects:
                         self.add_subject_configuration(text, **configuration)
 
         for group_label in group_node_properties.union(group_node_values):
-            node = {'id': 'GroupNode' + group_label, 'properties': {'label': group_label}}
+            node = {"id": "GroupNode" + group_label, "properties": {"label": group_label}}
             widget.nodes = [*widget.nodes, node]
 
     @staticmethod
     def __get_sparql_item_text(element: Dict) -> Union[str, None]:
-        lowercase_element_props = {key.lower(): value for key, value in element.get('properties', {}).items()}
+        lowercase_element_props = {key.lower(): value for key, value in element.get("properties", {}).items()}
         for key in SPARQL_LABEL_KEYS:
             if key in lowercase_element_props:
                 return str(lowercase_element_props[key])
@@ -665,4 +665,4 @@ class SparqlGraphWidget:
         for predicate in self._edge_configurations:
             edge_predicates.append(predicate)
         setattr(widget, "heat_mapping",
-                self.__configuration_mapper_factory(edge_predicates, 'heat', subjects, objects))
+                self.__configuration_mapper_factory(edge_predicates, "heat", subjects, objects))
