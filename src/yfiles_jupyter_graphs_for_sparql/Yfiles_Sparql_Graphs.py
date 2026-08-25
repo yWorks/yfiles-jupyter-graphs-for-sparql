@@ -1,4 +1,3 @@
-import inspect
 import re
 from typing import Union, Dict, Any, Optional
 from importlib import import_module
@@ -301,14 +300,11 @@ class SparqlGraphWidget:
                     affected_subjects[extract_label(row[0], False)] = predicate
 
         for key in POSSIBLE_NODE_BINDINGS:
-            default_mapping = getattr(widget, f"default_node_{key}_mapping")
-            setattr(widget, f"_node_{key}_mapping",
-                    self.__configuration_mapper_factory('', key, affected_subjects,
-                                                        affected_objects, default_mapping))
+            setattr(widget, f"node_{key}_mapping",
+                    self.__configuration_mapper_factory('', key, affected_subjects, affected_objects))
 
-        setattr(widget, f"_node_parent_mapping",
-                self.__configuration_mapper_factory('', 'parent_configuration', affected_subjects, affected_objects,
-                                                    lambda node: None))
+        setattr(widget, "node_parent_mapping",
+                self.__configuration_mapper_factory('', 'parent_configuration', affected_subjects, affected_objects))
 
         self.apply_heat_mapping(affected_subjects, affected_objects, widget)
 
@@ -318,13 +314,23 @@ class SparqlGraphWidget:
             edge_predicates.append(predicate)
 
         for key in POSSIBLE_EDGE_BINDINGS:
-            default_mapping = getattr(widget, f"default_edge_{key}_mapping")
-            setattr(widget, f"_edge_{key}_mapping",
-                    self.__configuration_mapper_factory(edge_predicates, key, {}, {},
-                                                        default_mapping))
+            setattr(widget, f"edge_{key}_mapping",
+                    self.__configuration_mapper_factory(edge_predicates, key, {}, {}))
 
     def __configuration_mapper_factory(self, edge_predicate: [str], binding_key: str, affected_subjects: Dict[str, str],
-                                       affected_objects: Dict[str, str], default_mapping):
+                                       affected_objects: Dict[str, str]) -> Optional[Any]:
+        configurations = []
+        if edge_predicate:
+            configurations.extend(self._edge_configurations.values())
+        if affected_subjects or affected_objects or isinstance(edge_predicate, str):
+            configurations.extend(self._subject_configurations.values())
+            configurations.extend(self._object_configurations.values())
+
+        # GraphWidget resolves None to its built-in default mapping. Only install a
+        # custom mapping when this binding is configured by the user.
+        if not any(binding_key in configuration for configuration in configurations):
+            return None
+
         def mapping(index, item: Dict):
             configurations = {}
             predicate = ''
@@ -366,13 +372,8 @@ class SparqlGraphWidget:
             if binding_key == "label":
                 return SparqlGraphWidget.__get_sparql_item_text(item)
             else:
-                # call default mapping
-                # some default mappings do not support "index" as first parameter
-                parameters = inspect.signature(default_mapping).parameters
-                if len(parameters) > 1 and parameters[list(parameters)[0]].annotation == int:
-                    return default_mapping(index, item)
-                else:
-                    return default_mapping(item)
+                # No custom value is configured for this item.
+                return None
 
         return mapping
 
@@ -534,7 +535,7 @@ class SparqlGraphWidget:
         widget.directed = True
         widget.nodes = nodes
         widget.edges = edges
-        widget.hierarchic_layout()
+        widget.hierarchical_layout()
         if return_format:
             self._wrapper.setReturnFormat(return_format)
         widget.show()
@@ -595,8 +596,10 @@ class SparqlGraphWidget:
 
         # use list comprehension to filter out the edges to automatically trigger model sync with the frontend
         widget.edges = [edge for edge in widget.edges if edge['id'] not in edge_ids_to_remove]
-        current_parent_mapping = widget.get_node_parent_mapping()
-        setattr(widget, "_node_parent_mapping",
+        current_parent_mapping = getattr(widget, 'node_parent_mapping', None)
+        if current_parent_mapping is None:
+            current_parent_mapping = lambda index, node: None
+        setattr(widget, "node_parent_mapping",
                 lambda index, node: node_to_parent.get(node['id'], current_parent_mapping(index, node)))
 
     def __create_group_nodes(self, widget: GraphWidget) -> None:
@@ -661,6 +664,5 @@ class SparqlGraphWidget:
         edge_predicates = []
         for predicate in self._edge_configurations:
             edge_predicates.append(predicate)
-        setattr(widget, "_heat_mapping",
-                self.__configuration_mapper_factory(edge_predicates, 'heat', subjects, objects,
-                                                    getattr(widget, 'default_heat_mapping')))
+        setattr(widget, "heat_mapping",
+                self.__configuration_mapper_factory(edge_predicates, 'heat', subjects, objects))
