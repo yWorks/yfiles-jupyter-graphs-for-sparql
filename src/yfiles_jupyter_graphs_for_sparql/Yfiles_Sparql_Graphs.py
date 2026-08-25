@@ -1,4 +1,5 @@
 import re
+import warnings
 from typing import Union, Dict, Any, Optional
 from importlib import import_module
 
@@ -55,27 +56,120 @@ class SparqlGraphWidget:
         self._edge_configurations = {}
         self._parent_configurations = set()
         self.widget = GraphWidget()
-        self._wrapper = wrapper
-        self._graph_layout = layout
+        self.wrapper = wrapper
+        self.layout = layout
         self.graph = None
 
+    # region limit
+
+    @property
+    def limit(self):
+        """The maximum number of results returned for a query."""
+        return self._limit
+
+    @limit.setter
+    def limit(self, limit):
+        self._limit = limit
+
     def set_limit(self, limit):
+        """Legacy setter for the limit property.
+
+        Deprecated, use ``widget.limit = value`` instead.
+        """
+        warnings.warn(
+            "set_limit() is deprecated; use `widget.limit = value` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.limit = limit
 
     def get_limit(self):
+        """Legacy getter for the limit property.
+
+        Deprecated, use ``widget.limit`` instead.
+        """
+        warnings.warn(
+            "get_limit() is deprecated; use `widget.limit` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self.limit
 
-    def set_layout(self, layout):
-        self._graph_layout = layout
+    # endregion
 
-    def get_layout(self):
+    # region layout
+
+    @property
+    def layout(self):
+        """The default graph layout."""
         return self._graph_layout
 
-    def set_wrapper(self, wrapper):
+    @layout.setter
+    def layout(self, layout):
+        self._graph_layout = layout
+
+    def set_layout(self, layout):
+        """Legacy setter for the layout property.
+
+        Deprecated, use ``widget.layout = value`` instead.
+        """
+        warnings.warn(
+            "set_layout() is deprecated; use `widget.layout = value` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.layout = layout
+
+    def get_layout(self):
+        """Legacy getter for the layout property.
+
+        Deprecated, use ``widget.layout`` instead.
+        """
+        warnings.warn(
+            "get_layout() is deprecated; use `widget.layout` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.layout
+
+    # endregion
+
+    # region wrapper
+
+    @property
+    def wrapper(self):
+        """The SPARQL wrapper used to execute queries."""
+        return self._wrapper
+
+    @wrapper.setter
+    def wrapper(self, wrapper):
         self._wrapper = wrapper
 
+    def set_wrapper(self, wrapper):
+        """Legacy setter for the wrapper property.
+
+        Deprecated, use ``widget.wrapper = value`` instead.
+        """
+        warnings.warn(
+            "set_wrapper() is deprecated; use `widget.wrapper = value` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.wrapper = wrapper
+
     def get_wrapper(self):
-        return self._wrapper
+        """Legacy getter for the wrapper property.
+
+        Deprecated, use ``widget.wrapper`` instead.
+        """
+        warnings.warn(
+            "get_wrapper() is deprecated; use `widget.wrapper` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.wrapper
+
+    # endregion
 
     def _limit_query(self, query):
         limit_pattern = re.compile(r"(?i)\bLIMIT\s+(\d+)", re.IGNORECASE)

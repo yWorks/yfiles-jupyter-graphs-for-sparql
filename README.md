@@ -10,7 +10,7 @@ the [yFiles Graphs for Jupyter](https://github.com/yWorks/yfiles-jupyter-graphs)
 ## Installation
 Just install it from the [Python Package Index](https://pypi.org/project/yfiles-jupyter-graphs-for-sparql/)
 ```bash
-pip install yfiles_jupyter_graphs_for_sparql==0.9.0rc1
+pip install yfiles_jupyter_graphs_for_sparql==2.0.0
 ```
 or see [README_DEV.md](https://github.com/yWorks/yfiles-jupyter-graphs-for-sparql/blob/main/README_DEV.md) to build it yourself.
 
@@ -51,11 +51,16 @@ The main class `SparqlGraphWidget` provides the following API:
 |-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
 | `limit`   | The node limit which is added to all queries                                                                                                                                                                                                       | `50`     |
 | `wrapper` | A SPARQL wrapper, that is used to send queries to                                                                                                                                                                                                  | `None`   |
-| `layout`  | Can be used to specify a general default node and edge layout. Available algorithms are: "circular", "hierarchic", "organic", "interactive_organic_layout", "orthogonal", "radial", "tree", "map", "orthogonal_edge_router", "organic_edge_router" | `organic` |
+| `layout`  | Can be used to specify a general default node and edge layout. Available algorithms are: "circular", "hierarchical", "organic", "interactive_organic", "orthogonal", "radial", "tree", "map", "orthogonal_edge_router", "organic_edge_router" | `organic` |
 
 
-For all arguments, there is a `set_[arg]` and `get_[arg]` method.
+The constructor arguments are also available as properties and can be changed after construction:
 
+```python
+g.limit = 100
+g.layout = "hierarchical"
+g.wrapper = SPARQLWrapper("http://dbpedia.org/sparql")
+```
 ### Methods 
 
 > [!IMPORTANT]  
@@ -66,9 +71,9 @@ For all arguments, there is a `set_[arg]` and `get_[arg]` method.
     - `query`: The [query](https://www.w3.org/TR/rdf-sparql-query/) that should be
       visualized.
     - `layout (Optional[str])`: The graph layout that is used. This overwrites the general layout in this specific graph instance. The following arguments are supported:
-        - `hierarchic`
+        - `hierarchical`
         - `organic`
-        - `interactive_organic_layout`
+        - `interactive_organic`
         - `circular`
         - `circular_straight_line`
         - `orthogonal`
